@@ -1,20 +1,32 @@
 # Durable Object alarm held past its time while getAlarm() reports it
 
 **When you run this you expect every Durable Object alarm to run within a few milliseconds of its
-time. Sometimes it runs 19, 39 or 58 s late, and all that time `ctx.storage.getAlarm()` returns the
-overdue time. Calling `setAlarm()` again gets it delivered, typically within 50 ms, even with the
-time that is already stored.**
+time. Sometimes, after `setAlarm()` has moved the alarm earlier, it runs about 19, 39 or 58 s late,
+and all that time `ctx.storage.getAlarm()` returns the overdue time. Calling `setAlarm()` again gets
+it run within about 100 ms.** It happened to about 1 in 180 alarms moved from +60 s to +1.5 s, and
+to about 1 in 37 when the two `setAlarm()` calls were a second apart. It never happened to an alarm
+that was set once.
+
+## The code
 
 `src/index.js` is the whole Worker: one SQLite-backed Durable Object class, `Probe`, and a fresh
-object per trial. A trial arms the alarm in one of two shapes:
+object per trial. A trial is:
 
-- `move`: `setAlarm(now + 60 s)`, then `setAlarm(now + 1.5 s)` in a second RPC call from the same
-  request. The alarm moves earlier.
-- `single`: `setAlarm(now + 1.5 s)` only.
+```js
+// GET /arm: one request, two RPC calls to the same new object
+await stub.armLater(60_000); // ctx.storage.setAlarm(Date.now() + 60_000)
+await stub.arm(1_500);       // ctx.storage.setAlarm(target = Date.now() + 1_500): the alarm moves earlier
 
-`alarm()` stores `Date.now()` and the object's instance id, a random value minted in the
-constructor, so a new incarnation shows. `run.mjs` reads the object 4 s after the alarm's time. An
-alarm not delivered by then is **held**, and the runner takes turns among five things to do with it:
+// GET /status, 4 s after target
+await ctx.storage.getAlarm(); // null, because alarm() has run. Sometimes it is still target.
+```
+
+That is the `move` shape. The `single` shape is `arm(1_500)` alone. `alarm()` stores `Date.now()`
+and the object's instance id, a random value minted in the constructor, so a new incarnation shows.
+
+`run.mjs` drives the trials and reads each object 4 s after its alarm's time. If `alarm()` has not
+run and `getAlarm()` still returns the alarm's own time, the alarm is **held**, and the runner takes
+turns among five things to do with it:
 
 | | |
 |---|---|
@@ -24,6 +36,8 @@ alarm not delivered by then is **held**, and the runner takes turns among five t
 | `same` | `setAlarm(t)`, with the `t` that `getAlarm()` returned |
 | `put` | `storage.put()` of an unrelated key, no `setAlarm()` |
 
+## Expected, and what happens
+
 Expected, every trial (real lines):
 
 ```
@@ -32,7 +46,11 @@ Expected, every trial (real lines):
 ```
 
 The columns are the alarm's time, the shape, the trial, the location hint, the object id, and how
-late `alarm()` ran.
+late `alarm()` ran. That is what the documentation leads us to expect:
+
+- `alarm()` runs at or just after the time given to `setAlarm()`. Here 99% of alarms ran within 6 ms.
+- A second `setAlarm()` replaces the first. The alarm runs once, at the new time.
+- `getAlarm()` returns the time the alarm will run. A time in the past means it is running now.
 
 Sometimes (real lines, 2026-09-24, all `move`; after the object id comes the colo it ran in, then
 what `getAlarm()` returned and when, relative to the alarm's time):
@@ -59,97 +77,173 @@ and Workers Logs shows those invocations scheduled for the replaced time (13:01:
 ```sh
 npm install
 npx wrangler deploy     # prints https://do-alarm-held-repro.<subdomain>.workers.dev
-node run.mjs --url https://do-alarm-held-repro.<subdomain>.workers.dev --minutes 10
 node run.mjs --url https://do-alarm-held-repro.<subdomain>.workers.dev --minutes 10 --hints enam,wnam,apac
+node run.mjs --url https://do-alarm-held-repro.<subdomain>.workers.dev --minutes 10
+node run.mjs --url https://do-alarm-held-repro.<subdomain>.workers.dev --minutes 5 --shape move --pause 1000
 ```
 
 It prints one line per trial and then a summary, and writes every reading to
-`results-<run>.jsonl`. `node run.mjs --summarize a.jsonl,b.jsonl` prints the summary again. With the
-default 50 trials in flight a runner does about 470 trials a minute. A trial is three to five
-requests and one alarm. The runs with location hints saw their first held alarm within 20 s, and
-the runs without hints within 3 minutes. Options are at the top of `run.mjs`.
+`results-<run>.jsonl`. `node run.mjs --summarize a.jsonl,b.jsonl` prints the summary again. The
+first two commands are what our runs did, side by side. The third is the quickest way to see it:
+the Worker waits 1 s between the two `setAlarm()` calls, and 2.7% of alarms are held. With 50
+trials in flight a runner does 250–500 trials a minute; a trial is three to five requests and one
+alarm. In our runs the first held alarm came 6–27 s in with location hints, 0.1 s to 4.5 min in
+without, and in the first seconds with `--pause 1000`. Options are at the top of `run.mjs`. In the
+first seconds after a deploy a few `/arm` calls can return 500 while the new version rolls out; the
+runner counts them as errors.
 
 ## What we saw
 
-2026-09-24, 12:35–13:20 UTC, 43 minutes of trials, from a laptop in London. Two runners went side by
-side: one without location hints (its objects ran in LHR and AMS) and one rotating
-`enam,wnam,weur,eeur,apac`. [`observed-2026-09-24.txt`](observed-2026-09-24.txt) is the runner's
-summary of all of it, with every held and late line.
+Two runs on 2026-09-24 from a laptop in London, each with two runners side by side: one without
+location hints (its objects ran in LHR and AMS) and one with hints. The second run was a separate
+deployment of the same code, made to check the first.
+[`observed-2026-09-24.txt`](observed-2026-09-24.txt) is the runner's summary of each run, with every
+held and late line.
 
-| shape | trials | held (not delivered 4 s after its time) |
+| | run 1 | run 2 | both |
+|---|---|---|---|
+| time (UTC) | 12:35–13:20 | 13:37–13:59 | |
+| hints on the second runner | `enam,wnam,weur,eeur,apac` | `enam,wnam,apac` | |
+| `move` trials | 20,702 | 10,425 | 31,127 |
+| `move` held | 106 (0.51%) | 69 (0.66%) | **175 (0.56%)** |
+| `single` trials | 20,703 | 10,424 | 31,127 |
+| `single` held | 0 | 0 | **0** |
+
+Every held alarm was a `move`. Over the 31,041 `move` alarms not re-armed with `setAlarm()`,
+lateness was p50 0 ms, p99 6 ms, p99.9 57.6 s and max 58.5 s.
+
+**How late.** The 98 held alarms we did not re-arm (`wait`, `idle`, `put`) ran at three delays:
+
+| ran after its time | run 1 | run 2 | scheduled time of that invocation in Workers Logs |
+|---|---|---|---|
+| 18.7–19.5 s | 22 | 12 | its own |
+| 24.3 s | | 1 | its own (#2548, below) |
+| 38.6–39.7 s | 17 | 14 | its own |
+| 57.6–58.5 s | 19 | 13 | the replaced +60 s time; `alarm()` ran 0–4 ms after it (one 395 ms after) |
+
+With `wait`, which reads the object every 5 s, the alarm ran in the same instance 39 of 40 times.
+With `idle` it ran in a new instance 37 of 37 times.
+
+**`getAlarm()` while held.** Before we did anything to them, we read held alarms 393 times. All 393
+returned the overdue time, up to 56.1 s past it. After a `put`, 207 more reads all returned it too.
+
+**What gets it run**, each called 4 s after the alarm's time:
+
+| call on a held alarm | run 1 | run 2 |
 |---|---|---|
-| `move` (+60 s, then +1.5 s) | 20,702 | **107** (0.52%) |
-| `single` (+1.5 s) | 20,703 | 1 |
+| `setAlarm(now + 1 ms)` | 26 of 26 ran 14–290 ms later, median 45 ms | 15 of 15 ran 23–559 ms later, median 63 ms |
+| `setAlarm(t)`, `t` = what `getAlarm()` returned | 22 of 22 ran 8–126 ms later, median 39 ms | 14 of 14 ran 16–101 ms later, median 45 ms |
+| `storage.put()` of another key | 8 of 8 not helped | 13 of 13 not helped |
+| `getAlarm()` every 5 s | not helped (`wait`) | not helped |
 
-Over the 20,640 `move` alarms we did not re-arm, lateness was p50 0 ms, p99 5 ms, p99.9 39.1 s and
-max 58.5 s.
+The `put` alarms ran 18.8–58.4 s late, at the same three delays. Before 13:00 UTC in run 1, the
+Worker also wrote a storage key in the `rearm` and `same` calls: 16 of the 26 `rearm` rows and 14
+of the 22 `same` rows. With the current code only (run 1 from 13:00, and run 2):
+`setAlarm(now + 1 ms)` 25 of 25, 14–559 ms, median 61 ms; `setAlarm(t)` 22 of 22, 8–101 ms,
+median 40 ms. Workers Logs shows the invocation after `setAlarm(t)` scheduled for the time of the
+call, not `t`: #2924's stored time was 13:06:14.151, and its invocation shows 13:06:18.
 
-**How late.** The 59 held alarms we did not re-arm (`wait`, `idle`, `put`) ran at three delays:
+**Where.** The rate depends on the location hint (`move`, both runs):
 
-| ran after its time | alarms | scheduled time of that invocation in Workers Logs |
-|---|---|---|
-| 18.7–19.5 s | 22 | its own |
-| 38.6–39.7 s | 17 | its own |
-| 57.6–58.5 s | 19 | the replaced +60 s time; `alarm()` ran 0–4 ms after it |
-| 5.9 s | 1 | its own; our read found a new instance, and the alarm ran as it started (#1870, MIA) |
-
-Every held object shows exactly one alarm invocation in Workers Logs. With `wait` (a read every
-5 s) the alarm ran in the same instance 27 of 28 times. With `idle` it ran in a new instance 23 of
-23 times.
-
-The rate depends on where the object is (`move` trials):
-
-| location hint | trials | held |
-|---|---|---|
-| none (LHR, AMS) | 10,631 | 32 (0.30%) |
-| `enam` | 2,015 | 20 (0.99%) |
-| `wnam` | 2,013 | 23 (1.14%) |
-| `apac` | 2,010 | 23 (1.14%) |
-| `weur` | 2,013 | 2 (0.10%) |
-| `eeur` | 2,014 | 7 (0.35%) |
-
-The held objects ran in 22 colos, most in LHR 24, AMS 10, NRT 8, IAD 6, SJC 6 and SIN 6.
-
-**getAlarm() while held.** We read held alarms 250 times before doing anything to them. 249 reads
-returned the overdue time, up to 56.1 s past it. The other one is #1870 above, whose read arrived
-as the alarm ran and returned null. After a `put`, 83 more reads all returned the overdue time.
-
-**What gets it delivered**, called 4 s after the alarm's time:
-
-| call on a held alarm | result |
+| location hint | held |
 |---|---|
-| `setAlarm(now + 1 ms)` | 26 of 26 ran 14–290 ms later, median 45 ms |
-| `setAlarm(t)`, `t` = what `getAlarm()` returned | 22 of 22 ran 8–126 ms later, median 39 ms |
-| `storage.put()` of another key | 8 of 8 not helped: they ran 14.5–54.3 s later, at the 19/39/58 s delays |
-| `getAlarm()` every 5 s | not helped (the `wait` rows above) |
+| none (LHR, AMS) | 46 of 16,113 (0.29%) |
+| `weur` | 2 of 2,013 (0.10%) |
+| `eeur` | 7 of 2,014 (0.35%) |
+| `enam` | 35 of 3,663 (0.96%) |
+| `wnam` | 41 of 3,660 (1.12%) |
+| `apac` | 44 of 3,655 (1.20%) |
 
-Before 13:00 UTC, `same` also wrote a storage key in the same call. That covers 14 of its 22 rows.
-From 13:00 it is `setAlarm(t)` alone: 8 of 8 ran 8–51 ms later. Workers Logs shows the invocation
-after `setAlarm(t)` scheduled for the time of the call, not `t`: #2924's stored time was
-13:06:14.151, and its invocation shows 13:06:18.
+The held objects ran in 22 colos, most in LHR (38), SIN, SJC (12 each), DFW, NRT (11 each), AMS
+and KIX (10 each).
 
-**The one held `single`.** #433 (LHR, 13:01:11.968) is like #1870. Our read at +7.5 s found a new
-instance, `getAlarm()` returned null, and the alarm ran at that moment. It fell inside a burst of the
-slow `setAlarm()` calls described next.
+The location mostly stands for the time between the two `setAlarm()` calls. The Worker making
+both calls runs near the laptop, so an object far away gets its second call later: median 61 ms
+after the first for alarms that ran on time, 190 ms for held ones. The rate rises with that time,
+and it does so within one location too:
 
-**Also seen: `setAlarm()` slow to resolve.** In bursts, `/arm`, which returns once
-`await setAlarm()` resolves, took 5–41 s. That happened in 188 of 39,400 timed trials: 113 on
-objects in LHR, 36 in AMS and 25 in SIN, about half of them within four minutes (12:54, 13:00, 13:06
-and 13:16 UTC). Nine more `/arm` calls returned 500: Workers Logs shows their RPC call to the object
-ending with `exceededWallTime` after 30–36 s. Separately from the held ones, 104 alarms ran
-1.0–27.5 s late but before our first read, so we could not read `getAlarm()` in between. The runner
-prints them as `LATE`, not `HELD`. 73 of them came with an `/arm` slower than 5 s, and 9 are from
-the first two minutes, before the runner timed `/arm`. Of the 95 with a colo reading, 93 were in
-LHR. We don't know whether this is the same fault.
+| time between the two `setAlarm()` calls | held, all | held, no hint (LHR, AMS) |
+|---|---|---|
+| under 50 ms | 24 of 13,909 (0.17%) | 24 of 12,313 (0.19%) |
+| 50–100 ms | 10 of 4,004 (0.25%) | 3 of 2,123 (0.14%) |
+| 100–200 ms | 65 of 7,432 (0.87%) | 10 of 1,096 (0.91%) |
+| 200–500 ms | 67 of 5,266 (1.27%) | 6 of 370 (1.62%) |
+| 500 ms and more | 9 of 507 (1.78%) | 3 of 211 (1.42%) |
 
-## First seen
+**What changes the rate.** After the two runs we made five shorter checks against the same Worker,
+with the code in this repo (14:09–14:30 UTC; checks A–E in the file):
 
-In our own Worker from 2026-09-21. Between 2026-09-23 20:00 and 09-24 04:00 UTC, 7 of 124 CI
-end-to-end jobs failed because an alarm ran 15–60 s late. The alarm had usually just been moved
-earlier from about a minute out. A first plain-Worker version of this repro (Worker
-`alarm-move-earlier-repro`, same account, 50 objects at a time) measured on 2026-09-24:
+| check | first `setAlarm()` | wait between the calls | hints | `move` trials | held | how late the held ones ran |
+|---|---|---|---|---|---|---|
+| A, the README's command | +60 s | none | `enam,wnam,apac` | 465 | 6 (1.3%) | 2 at 18.9 s, 2 at 38.9–39.1 s, 2 re-armed |
+| B | +30 s | none | `enam,wnam,apac` | 3,454 | 19 (0.55%) | all 19 at the replaced time, 28.0–28.6 s |
+| C | +120 s | none | `enam,wnam,apac` | 3,650 | **0** | |
+| D | +60 s | 1 s | none (LHR, AMS) | 2,068 | **55 (2.66%)** | 19 at 18.6–19.5 s, 16 at 38.7–39.6 s, 20 at the replaced time, 56.5–57.5 s |
+| E | +60 s | 5 s | none (LHR, AMS) | 1,415 | **40 (2.83%)** | 12 at 18.7–19.1 s, 14 at 38.6–39.9 s, 14 at the replaced time, 53.2–53.9 s |
 
-| sequence | alarms | held > 3 s | how late |
+- Without a wait, objects in LHR and AMS were held 0.19% of the time when the calls came within
+  50 ms of each other. A wait of 1 s or 5 s raises that to 2.7–2.8%.
+- The ~19 s and ~39 s delays stay put, counted from the alarm's own time. The third delay follows
+  the replaced time wherever it is.
+- Moved from +30 s, every held alarm waited for the replaced time; none ran at 19 s.
+- Moved from +120 s, none was held, where +60 s held about 1% at the same locations. The first
+  version of this repro held none of 1,500 moved from +15 min (below).
+- In all five checks `getAlarm()` returned the overdue time on every read of a held alarm, 461 of
+  461.
+
+**Is it the repro?** We checked the ways the runner could mistake its own bugs for this.
+
+- The alarm's time and its delivery time are both `Date.now()` inside the object: `arm()` stores
+  `target` before `setAlarm(target)`, and `alarm()` reads the clock first thing. The laptop's clock
+  is only used to decide when to read.
+- Every route reaches the object through `idFromName` with the same name and hint. Workers Logs,
+  filtered by the printed object id, shows the whole sequence on that one object.
+- `retryCount` is 0 on every delivery, and no `alarm()` failed.
+- All 77 re-armed alarms ran in the instance that armed them, so the reads before them reached that
+  live instance.
+- Each runner's object names start with its own run id, so no two runners share an object.
+
+## Also seen, maybe a separate fault
+
+These are not counted as held. The numbers are from runs 1 and 2.
+
+- **`setAlarm()` slow to resolve.** In bursts, `/arm`, which returns once `await setAlarm()`
+  resolves, took 5–41 s: 239 of 60,245 timed trials (LHR 118, SIN 55, AMS 41, SEA 14), about half
+  of run 1's within four minutes (12:54, 13:00, 13:06 and 13:16 UTC). 15 `/arm` calls returned
+  500, 11 of them after 30–40 s. For 9 of those in run 1, Workers Logs shows the RPC call to the
+  object ending with `exceededWallTime` after 30.0–36.4 s.
+- **Late without being held.** 117 alarms (86 `single`, 31 `move`) ran 1.0–27.5 s late without
+  being held: 111 had run by our first read, 74 came with an `/arm` slower than 5 s, and 102 were
+  in LHR. In the other 6 our first read found `alarm()` not yet run and `getAlarm()` null, and the
+  alarm ran as that read arrived: #1870, #433, #6449, #6471, #6835 and #10640 in the file. Workers
+  Logs shows each of those invocations starting within 1 s of its time and taking 5.1–9.1 s.
+- **A `canceled` alarm after the real one.** In run 2, 211 of 20,845 objects (both shapes, none of
+  them held) show a second alarm invocation in Workers Logs, with outcome `canceled` and scheduled
+  for the object's own time, up to 7 s after the one that ran.
+- **The replaced time fires after the alarm ran.** #2548 (run 2, `apac`, KIX,
+  `07534a4c05203bc5493c3d9974df258fb97a37f2a2182b361b97ac09fec384d0`) was due 13:42:52.029, held,
+  and ran 24.3 s late in a new instance. Then at 13:43:50.247 an alarm invocation scheduled for
+  13:43:50, the replaced +60 s time, ran with outcome `canceled`. The replaced time was still
+  registered after the alarm had run.
+
+## How we found it
+
+We run a platform on Workers whose actors are Durable Objects. An actor arms short deadlines with
+`setAlarm()`. Often it already has a housekeeping alarm about a minute out, so the deadline moves
+the alarm earlier. From 2026-09-21 our end-to-end tests began failing because a deadline ran 15–60 s
+late: 7 of 124 CI jobs between 2026-09-23 20:00 and 09-24 04:00 UTC.
+
+With every `setAlarm()` logged, each failure looked the same: of 6, 4 ran 36–39 s late at their
+own time and 2 ran only at the replaced +60 s time. In one, on 2026-09-24, on object
+`38f83277274e53ad05ac41ac869f41dcf99e1d77528f865fba91c97f7b00eeea`, the alarm was set to +15 min
+and then +60 s at 09:20:11.796, and moved to 09:20:13.805 at 09:20:12.305. At 09:20:42.298,
+`getAlarm()` returned 09:20:13.805 and no alarm had run. The next invocation ran at 09:21:11.822,
+scheduled for 09:21:11, the replaced time, in a new incarnation.
+
+A first plain-Worker version of this repro (Worker `alarm-move-earlier-repro`, same account, 50
+objects at a time) measured on 2026-09-24:
+
+| sequence | alarms | not run 3 s after its time | how late |
 |---|---|---|---|
 | +60 s, then +1.5 s | 1,000 | 2 | 39.7 s, 39.0 s |
 | +60 s, then +1.5 s | 1,500 | 1 | 6.6 s |
@@ -161,19 +255,29 @@ earlier from about a minute out. A first plain-Worker version of this repro (Wor
 - `f83a1e6e6e8a9b61167dbc9c8073c84fb86d7089450eeb2e8ea7150023ea8540` 09:45:32.150 → 09:45:43.971 (+1.5 s only)
 - `cbc6c0b55c57ac3b8992124378dd39d88e32d4ccaddf027a13323c9e4e88d48f` 09:45:36.258 → 09:45:42.833
 
-In our own Worker a re-arm once failed to help. At 2026-09-24 10:03:34 UTC, on object
-`38dbb6504ec5da84265e20a6823b59e7f3a1bb617f99f2e5e8a8da5f3e1853c1`, three `setAlarm(now)` calls
-5 s apart were never delivered. The held alarm ran 28.8 s late, in a new incarnation. Here all 48
-`setAlarm()` calls on a held alarm worked.
+The last two ran 1.1 s apart and were already running when read, so they may be the "late without
+being held" case above. That version did not tell the two apart.
+
+Once, in our own Worker, re-arming did not help. At 2026-09-24 10:03:34 UTC, on object
+`38dbb6504ec5da84265e20a6823b59e7f3a1bb617f99f2e5e8a8da5f3e1853c1`, three `setAlarm(Date.now())`
+calls 5 s apart were never delivered, and the held alarm ran 28.8 s late in a new incarnation. In
+this repro all 77 `setAlarm()` calls on a held alarm worked.
 
 ## Questions for Cloudflare
 
-1. After `setAlarm()` moves an armed alarm earlier, why is it sometimes not run at its time while
-   `getAlarm()` keeps returning that time? It then runs about 19 or 39 s late, or at the time it
-   replaced. What runs on a ~20 s cycle, and why does the replaced time still fire?
-2. Why does a second `setAlarm()`, even with the time already stored, deliver it within ~50 ms,
-   while a storage write without `setAlarm()` does not?
-3. Why are objects in North America and Asia held about 1% of the time, and those in western
-   Europe 0.1–0.3%?
-4. Is `setAlarm()` taking 5–41 s in LHR, AMS and SIN, with RPC calls hitting the 30 s wall-time
-   limit, the same fault?
+1. **Why is a stored alarm not run?** After `setAlarm()` moves an alarm earlier, it is sometimes
+   not run at its time. It then runs about 19 or 39 s after its own time, whatever the wait between
+   the calls, or only at the time it replaced; moved from +30 s, always at the replaced time. What
+   holds it, what runs on that ~19.5 s cycle, and why does the replaced time still fire, even after
+   the alarm has run (#2548)?
+2. **Does `getAlarm()` show the scheduler's state?** While an alarm is held, `getAlarm()` returns
+   its time, overdue, on every read (854 of 854 in the runs and checks, up to 56 s past it). Is
+   that value only the object's stored copy, which can disagree with what is scheduled? And why
+   does any `setAlarm()`, even with the stored time, get a held alarm run within ~100 ms, while a
+   storage write does not?
+3. **Is moving the alarm earlier the trigger?** 175 of 31,127 moved alarms were held and 0 of
+   31,127 set once. Moved from +30 s or +60 s, 0.5–2.8% were held; from +120 s, 0 of 3,650; from
+   +15 min, 0 of 1,500. The rate rises with the time between the two calls, from 0.19% under 50 ms
+   to 2.7% with a 1 s wait. Is there a window after the first `setAlarm()` in which moving the
+   alarm earlier updates storage but not the scheduler, and does it apply only when the first
+   alarm is due within about two minutes?

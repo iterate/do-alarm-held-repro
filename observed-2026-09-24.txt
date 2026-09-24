@@ -1,18 +1,28 @@
+Every run in the README, as printed by `node run.mjs --summarize <files>` from the raw results.
+All times are UTC on 2026-09-24. Worker do-alarm-held-repro unless noted.
+HELD: not run 4 s after its time while getAlarm() still returned that time.
+LATE: ran more than 1 s late without being held.
+
+########## Run 1, 12:35-13:20. Two runners side by side: one without location hints (objects in
+########## LHR and AMS), one rotating enam,wnam,weur,eeur,apac. Until 13:00 the rearm and same calls
+########## also wrote a storage key (see the README).
+
 === 41405 trials from run0A.jsonl, run0B.jsonl, runA.jsonl, runB.jsonl, runC.jsonl, runD.jsonl
-move (+60 s, then +1.5 s): 20702 trials, 6 errors, 107 held (not delivered at +4 s), 98 with /arm slower than 5 s
-  lateness of the 20640 not re-armed (delivery minus the alarm's time):
-    p50 0 ms, p90 1 ms, p99 5 ms, p99.9 39138 ms, max 58464 ms
-    <=10 ms: 20514 | 10-100 ms: 40 | 0.1-1 s: 8 | 1 s-4 s: 20 | 4-10 s: 7 | 10-30 s: 20 | 30-60 s: 31 | >60 s: 0 | never: 0
-  held [wait]: 39.2 s, 19.0 s, 39.0 s, 58.4 s, 19.1 s, 38.7 s, 58.5 s, 19.5 s, 19.0 s, 58.3 s, 5.9 s, 19.0 s, 39.1 s, 39.1 s, 58.4 s, 18.9 s, 39.0 s, 19.0 s, 19.0 s, 39.7 s, 39.1 s, 58.3 s, 58.2 s, 19.0 s, 38.6 s, 39.0 s, 19.0 s, 19.0 s
-  held [rearm]: 21 ms after the call, 57 ms after the call, 29 ms after the call, 23 ms after the call, 21 ms after the call, 21 ms after the call, 43 ms after the call, 80 ms after the call, 86 ms after the call, 21 ms after the call, 93 ms after the call, 28 ms after the call, 59 ms after the call, 43 ms after the call, 104 ms after the call, 79 ms after the call, 33 ms after the call, 290 ms after the call, 52 ms after the call, 23 ms after the call, 72 ms after the call, 65 ms after the call, 36 ms after the call, 47 ms after the call, 87 ms after the call, 14 ms after the call
-  held [idle]: 19.1 s, 19.1 s, 19.1 s, 19.2 s, 57.6 s, 58.2 s, 38.8 s, 39.3 s, 19.1 s, 58.4 s, 18.7 s, 58.3 s, 18.9 s, 39.4 s, 58.4 s, 58.1 s, 39.1 s, 58.3 s, 58.3 s, 19.0 s, 58.4 s, 58.3 s, 39.1 s
-  held [same]: 25 ms after the call, 39 ms after the call, 22 ms after the call, 28 ms after the call, 87 ms after the call, 44 ms after the call, 23 ms after the call, 60 ms after the call, 46 ms after the call, 126 ms after the call, 46 ms after the call, 79 ms after the call, 14 ms after the call, 46 ms after the call, 30 ms after the call, 27 ms after the call, 8 ms after the call, 48 ms after the call, 51 ms after the call, 36 ms after the call, 36 ms after the call, 38 ms after the call
-  held [put]: 15011 ms after the call, 34928 ms after the call, 34632 ms after the call, 54280 ms after the call, 54208 ms after the call, 14790 ms after the call, 14548 ms after the call, 54317 ms after the call
-single (+1.5 s): 20703 trials, 5 errors, 1 held (not delivered at +4 s), 90 with /arm slower than 5 s
-  lateness of the 20698 not re-armed (delivery minus the alarm's time):
+move (+60 s, then +1.5 s): 20702 trials, 6 errors, 106 held (not run at +4 s, getAlarm() still returning its time), 98 with /arm slower than 5 s
+  lateness of the 20648 not re-armed with setAlarm() (delivery minus the alarm's time):
+    p50 0 ms, p90 1 ms, p99 6 ms, p99.9 39355 ms, max 58464 ms
+    <=10 ms: 20514 | 10-100 ms: 40 | 0.1-1 s: 8 | 1 s-4 s: 20 | 4-10 s: 7 | 10-30 s: 23 | 30-60 s: 36 | >60 s: 0 | never: 0
+  held [wait], how late: 39.2 s, 19.0 s, 39.0 s, 58.4 s, 19.1 s, 38.7 s, 58.5 s, 19.5 s, 19.0 s, 58.3 s, 19.0 s, 39.1 s, 39.1 s, 58.4 s, 18.9 s, 39.0 s, 19.0 s, 19.0 s, 39.7 s, 39.1 s, 58.3 s, 58.2 s, 19.0 s, 38.6 s, 39.0 s, 19.0 s, 19.0 s
+  held [rearm], delivered after the call: 21 ms, 57 ms, 29 ms, 23 ms, 21 ms, 21 ms, 43 ms, 80 ms, 86 ms, 21 ms, 93 ms, 28 ms, 59 ms, 43 ms, 104 ms, 79 ms, 33 ms, 290 ms, 52 ms, 23 ms, 72 ms, 65 ms, 36 ms, 47 ms, 87 ms, 14 ms
+  held [idle], how late: 19.1 s, 19.1 s, 19.1 s, 19.2 s, 57.6 s, 58.2 s, 38.8 s, 39.3 s, 19.1 s, 58.4 s, 18.7 s, 58.3 s, 18.9 s, 39.4 s, 58.4 s, 58.1 s, 39.1 s, 58.3 s, 58.3 s, 19.0 s, 58.4 s, 58.3 s, 39.1 s
+  held [same], delivered after the call: 25 ms, 39 ms, 22 ms, 28 ms, 87 ms, 44 ms, 23 ms, 60 ms, 46 ms, 126 ms, 46 ms, 79 ms, 14 ms, 46 ms, 30 ms, 27 ms, 8 ms, 48 ms, 51 ms, 36 ms, 36 ms, 38 ms
+  held [put], how late: 19.1 s, 39.3 s, 39.0 s, 58.4 s, 58.4 s, 19.1 s, 19.1 s, 58.4 s
+  held by location hint: none 32/10631 (0.30%) | weur 2/2013 (0.10%) | enam 19/2015 (0.94%) | eeur 7/2014 (0.35%) | wnam 23/2013 (1.14%) | apac 23/2010 (1.14%)
+  held by time between the two setAlarm() calls: <50 ms 13/9646 (0.13%) | 50-100 ms 8/3108 (0.26%) | 100-200 ms 39/4595 (0.85%) | 200-500 ms 39/2970 (1.31%) | >=500 ms 7/377 (1.86%)
+single (+1.5 s): 20703 trials, 5 errors, 0 held (not run at +4 s, getAlarm() still returning its time), 90 with /arm slower than 5 s
+  lateness of the 20698 not re-armed with setAlarm() (delivery minus the alarm's time):
     p50 0 ms, p90 1 ms, p99 6 ms, p99.9 13406 ms, max 27469 ms
     <=10 ms: 20553 | 10-100 ms: 48 | 0.1-1 s: 19 | 1 s-4 s: 22 | 4-10 s: 26 | 10-30 s: 30 | 30-60 s: 0 | >60 s: 0 | never: 0
-  held [wait]: 7.5 s
 held or late alarms:
 2026-09-24T12:35:50.498Z move   #128   -    c9cdb22748b13b2c93335b3e1bbfc5b1a16d1ae3c85fa9de236bbd2c506cba70 AMS HELD [rearm] getAlarm()=12:35:50.498 at +4.1 s; setAlarm(now + 1 ms) at 12:35:54.608 -> delivered 21 ms later (same instance)
 2026-09-24T12:35:38.171Z move   #24    -    95a21831c3a5705b388db6a009e75d81749a6eeb5125374d348ddc8babc8a301 LHR HELD [wait] getAlarm()=12:35:38.171 at +4.1..+34.3 s (7 reads); delivered 12:36:17.356 (+39.2 s, same instance)
@@ -78,7 +88,7 @@ held or late alarms:
 2026-09-24T12:40:40.529Z move   #1082  wnam 1d652ab1d0880189b05fd6d35299ea1b3abed22c54fec1267d48abd14f9bee35 DEN HELD [wait] getAlarm()=12:40:40.529 at +4.2..+55.6 s (11 reads); delivered 12:41:38.867 (+58.3 s, same instance, at the replaced +60 s time)
 2026-09-24T12:42:18.362Z move   #1834  weur a112c3e20026dc86b49b041ef5c0f70f8cc260c9570b8c380a107e4621c82cd2 LHR HELD [same] getAlarm()=12:42:18.362 at +4.2 s; setAlarm(the same time) at 12:42:22.564 -> delivered 44 ms later (same instance)
 2026-09-24T12:42:25.934Z move   #1882  wnam d7e8bda1f53d32ac32b9b00263d08c6ae0a3af31f64808165131455b363f4653 SEA HELD [rearm] getAlarm()=12:42:25.934 at +4.6 s; setAlarm(now + 1 ms) at 12:42:30.729 -> delivered 86 ms later (same instance)
-2026-09-24T12:42:23.697Z move   #1870  enam 53efc6e4325136f061eafd712ce0c2013f3657906c02d43bb008cc1e2f1d454e MIA HELD [wait] getAlarm()=null at +5.9 s; delivered 12:42:29.630 (+5.9 s, new instance)
+2026-09-24T12:42:23.697Z move   #1870  enam 53efc6e4325136f061eafd712ce0c2013f3657906c02d43bb008cc1e2f1d454e MIA LATE delivered 12:42:29.630 (+5.9 s); not run at the first read, getAlarm()=null
 2026-09-24T12:42:49.351Z move   #2058  apac f04b506585f2923313218100ba6651319b387d4894dd6ca9013b3740e68c30e5 KIX HELD [same] getAlarm()=12:42:49.351 at +4.3 s; setAlarm(the same time) at 12:42:53.898 -> delivered 23 ms later (same instance)
 2026-09-24T12:41:22.569Z move   #1398  apac 4f6c7e7f809e0c3081e019b7811e26007ebfa9264fbcd70c6809c5dcb3498e85 KIX HELD [idle] getAlarm()=12:41:22.569 at +4.3 s; delivered 12:42:20.805 (+58.2 s, new instance, at the replaced +60 s time)
 2026-09-24T12:44:05.203Z move   #2650  enam 3bc93f2082589e9ac21121323cd846922fa7258792625bf1166b6a488917618a IAD HELD [wait] getAlarm()=12:44:05.203 at +4.2..+14.4 s (3 reads); delivered 12:44:24.167 (+19.0 s, same instance)
@@ -145,7 +155,7 @@ held or late alarms:
 2026-09-24T13:00:54.733Z single #315   -    efd800d419f979ab9b499deeaaa2761bf6bddad6f38f850b34c864f5c8818481 LHR LATE delivered 13:01:04.443 (+9.7 s) (/arm took 11.5 s)
 2026-09-24T13:00:56.437Z move   #320   -    f18fbf3df9553aadfca0fc98238ade44f8bae28a3696aedde5a4442699bdbfd6 LHR LATE delivered 13:01:04.592 (+8.2 s) (/arm took 11.0 s)
 2026-09-24T13:01:05.775Z move   #380   -    ba98899ed892b80b6065e2269472191639235180e06015425230fc70997d48dc LHR LATE delivered 13:01:07.173 (+1.4 s)
-2026-09-24T13:01:11.968Z single #433   -    3a59acfd212af78175c32de972188c1152751cc8aedf64ef04ee09055c34b69b LHR HELD [wait] getAlarm()=null at +7.5 s; delivered 13:01:19.433 (+7.5 s, new instance)
+2026-09-24T13:01:11.968Z single #433   -    3a59acfd212af78175c32de972188c1152751cc8aedf64ef04ee09055c34b69b LHR LATE delivered 13:01:19.433 (+7.5 s); not run at the first read, getAlarm()=null
 2026-09-24T13:02:45.084Z move   #1196  -    5ba7afc31cb763e69393fc99a86294fff8ea3c0283b9881b8a0e12a08c0b1507 AMS HELD [rearm] getAlarm()=13:02:45.084 at +4.1 s; setAlarm(now + 1 ms) at 13:02:49.207 -> delivered 33 ms later (same instance)
 2026-09-24T13:03:30.809Z single #1579  -    62bc164c2c4cfc87d96b02405a60c6bba91abee1555faa0561bfd248624f2f65 AMS LATE delivered 13:03:32.298 (+1.5 s)
 2026-09-24T13:06:14.151Z move   #2924  -    9306860bed4abbe0fac324f95c5a69b17532a3a4b4560a98982791f824f6996f LHR HELD [same] getAlarm()=13:06:14.151 at +4.1 s; setAlarm(the same time) at 13:06:18.312 -> delivered 30 ms later (same instance)
@@ -238,3 +248,307 @@ errors:
 2026-09-24T13:00:59.767Z move   #110   -    ERROR Error: /arm 500: Worker threw exception | do-alarm-held-repro.<subdomain>.workers.dev | Cloudflare (after 37.9 s)
 2026-09-24T13:01:00.062Z single #173   -    ERROR Error: /arm 500: Worker threw exception | do-alarm-held-repro.<subdomain>.workers.dev | Cloudflare (after 30.2 s)
 2026-09-24T13:16:39.000Z move   #7374  -    ERROR Error: /arm 500: Worker threw exception | do-alarm-held-repro.<subdomain>.workers.dev | Cloudflare (after 37.3 s)
+
+########## Run 2, 13:37-13:59. A second deployment of the same code, Worker
+########## do-alarm-held-repro-verify (deleted since). One runner without hints, one with enam,wnam,apac.
+
+=== 20849 trials from vA.jsonl, vB.jsonl
+move (+60 s, then +1.5 s): 10425 trials, 3 errors, 69 held (not run at +4 s, getAlarm() still returning its time), 25 with /arm slower than 5 s
+  lateness of the 10393 not re-armed with setAlarm() (delivery minus the alarm's time):
+    p50 0 ms, p90 1 ms, p99 6 ms, p99.9 58158 ms, max 58469 ms
+    <=10 ms: 10320 | 10-100 ms: 26 | 0.1-1 s: 4 | 1 s-4 s: 2 | 4-10 s: 1 | 10-30 s: 13 | 30-60 s: 27 | >60 s: 0 | never: 0
+  held [wait], how late: 39.1 s, 19.1 s, 19.3 s, 38.9 s, 24.3 s, 58.4 s, 19.0 s, 58.3 s, 39.0 s, 58.3 s, 39.0 s, 39.0 s, 38.9 s
+  held [rearm], delivered after the call: 65 ms, 38 ms, 23 ms, 35 ms, 77 ms, 32 ms, 63 ms, 70 ms, 94 ms, 90 ms, 559 ms, 34 ms, 66 ms, 61 ms, 29 ms
+  held [idle], how late: 39.2 s, 58.5 s, 19.1 s, 58.3 s, 58.4 s, 57.8 s, 58.4 s, 19.0 s, 18.9 s, 58.2 s, 38.7 s, 38.9 s, 18.9 s, 58.2 s
+  held [same], delivered after the call: 29 ms, 21 ms, 31 ms, 46 ms, 16 ms, 22 ms, 55 ms, 43 ms, 101 ms, 79 ms, 77 ms, 85 ms, 44 ms, 60 ms
+  held [put], how late: 19.0 s, 39.3 s, 18.8 s, 19.0 s, 19.1 s, 39.0 s, 58.3 s, 58.1 s, 58.3 s, 39.1 s, 39.1 s, 18.9 s, 39.0 s
+  held by location hint: none 14/5482 (0.26%) | enam 16/1648 (0.97%) | wnam 18/1647 (1.09%) | apac 21/1645 (1.28%)
+  held by time between the two setAlarm() calls: <50 ms 11/4263 (0.26%) | 50-100 ms 2/896 (0.22%) | 100-200 ms 26/2837 (0.92%) | 200-500 ms 28/2296 (1.22%) | >=500 ms 2/130 (1.54%)
+single (+1.5 s): 10424 trials, 1 errors, 0 held (not run at +4 s, getAlarm() still returning its time), 26 with /arm slower than 5 s
+  lateness of the 10423 not re-armed with setAlarm() (delivery minus the alarm's time):
+    p50 0 ms, p90 1 ms, p99 4 ms, p99.9 20 ms, max 9362 ms
+    <=10 ms: 10400 | 10-100 ms: 14 | 0.1-1 s: 1 | 1 s-4 s: 5 | 4-10 s: 3 | 10-30 s: 0 | 30-60 s: 0 | >60 s: 0 | never: 0
+held or late alarms:
+2026-09-24T13:41:45.009Z move   #2272  -    5f29bb65b4aacadd46723e4e52bc2afdc377275881412d3ce60eb5a0150c4a9a LHR HELD [wait] getAlarm()=13:41:45.009 at +4.1..+34.3 s (7 reads); delivered 13:42:24.148 (+39.1 s, same instance)
+2026-09-24T13:42:43.369Z move   #2744  -    57a3765b8cd80e5c563abc0eb446625f736ac766e38e8aa3a05e2dff96f0f83b LHR HELD [rearm] getAlarm()=13:42:43.369 at +4.1 s; setAlarm(now + 1 ms) at 13:42:47.476 -> delivered 65 ms later (same instance)
+2026-09-24T13:43:53.193Z single #3319  -    78ca953fc507239d6b18f27b5c3786ec3b7a2cc0d47dd7c16801aba27b257415 LHR LATE delivered 13:43:56.605 (+3.4 s)
+2026-09-24T13:42:54.531Z move   #2832  -    61c5f70cf6318b912cde5029e518ca6e0859448a31343afb166b73a97354e89f LHR HELD [idle] getAlarm()=13:42:54.531 at +4.1 s; delivered 13:43:33.699 (+39.2 s, new instance)
+2026-09-24T13:45:40.086Z move   #4206  -    57f98291aba3f1015fda276b3daaf32d16aef1151ff6e0333a63f6a039e08d0d LHR HELD [same] getAlarm()=13:45:40.086 at +4.1 s; setAlarm(the same time) at 13:45:44.195 -> delivered 29 ms later (same instance)
+2026-09-24T13:46:36.696Z move   #4674  -    9f91a0f80bc22f087eae429fa83d9e91735e049ec790c35bb25abe1bdee9ba65 LHR HELD [put] getAlarm()=13:46:36.696 at +4.2 s; storage.put() alone at 13:46:40.936 -> delivered 14789 ms later (same instance)
+2026-09-24T13:48:01.829Z move   #5392  -    a5612978ac1cc494da63c5cc2ab8263ea94e3ef945cad36ffc2bca1ccf1e7341 LHR HELD [rearm] getAlarm()=13:48:01.829 at +4.1 s; setAlarm(now + 1 ms) at 13:48:05.956 -> delivered 38 ms later (same instance)
+2026-09-24T13:47:59.132Z move   #5368  -    b7eefce270d6582871e20bfdf17781343e1eb8803b12f313918e800bb1d6ca05 LHR HELD [wait] getAlarm()=13:47:59.132 at +4.1..+14.1 s (3 reads); delivered 13:48:18.261 (+19.1 s, same instance)
+2026-09-24T13:49:22.777Z move   #6058  -    df4f8847edb6a517e8aef8e9b372678415d13f204d4795291733682d463b01aa LHR HELD [same] getAlarm()=13:49:22.777 at +4.1 s; setAlarm(the same time) at 13:49:26.877 -> delivered 21 ms later (same instance)
+2026-09-24T13:48:14.340Z move   #5492  -    5a84c5a2894d7299c24a468b3c096d29dc404f8005c561383cc3ac60efa67656 LHR HELD [idle] getAlarm()=13:48:14.340 at +4.1 s; delivered 13:49:12.809 (+58.5 s, new instance, at the replaced +60 s time)
+2026-09-24T13:50:10.652Z single #6449  -    1753457725ab77fa93760fe97dd75c087b4cae1334842a98286e5f61ee13c185 LHR LATE delivered 13:50:17.629 (+7.0 s); not run at the first read, getAlarm()=null
+2026-09-24T13:50:17.150Z move   #6504  -    9cff13d72692d5ce164e863dfb402e442a0c5094fb8486c7d9536d9bddaadcef LHR HELD [rearm] getAlarm()=13:50:17.150 at +4.1 s; setAlarm(now + 1 ms) at 13:50:21.314 -> delivered 23 ms later (same instance)
+2026-09-24T13:50:13.641Z single #6471  -    cf34bf4f05957b92ae98b94896bc87276d658f6d161b8785ef0e659392d5197a LHR LATE delivered 13:50:21.133 (+7.5 s); not run at the first read, getAlarm()=null
+2026-09-24T13:50:57.083Z single #6835  -    f01116c8f6cb17cbfdaf7017328064c851b8149147c383cad41a00e6774754a6 AMS LATE delivered 13:51:06.445 (+9.4 s); not run at the first read, getAlarm()=null
+2026-09-24T13:52:56.901Z move   #7798  -    77c43fa4db4ba3fdb032b8c2d0e48d1889d3b7b63a28a7d24aa6e1aa2cc22ffe LHR HELD [same] getAlarm()=13:52:56.901 at +4.1 s; setAlarm(the same time) at 13:53:01.003 -> delivered 31 ms later (same instance)
+2026-09-24T13:54:18.601Z single #8483  -    9637cc18d040a54d5ee7af038684b4b4d87afca8e0f6eab70fb61ff4fba4c0f8 LHR LATE delivered 13:54:20.240 (+1.6 s)
+2026-09-24T13:53:42.019Z move   #8182  -    5c4eb97c1da929a803bfd135c62f7f6c0063f2433a351f9cce94ce99831d26bf LHR HELD [put] getAlarm()=13:53:42.019 at +4.1 s; storage.put() alone at 13:53:46.156 -> delivered 35154 ms later (same instance)
+2026-09-24T13:54:35.760Z single #8629  -    58306b70f6ca542551bd4db7dd22be1799416e8d86a13f8a0f9bb0504e4672c9 LHR LATE delivered 13:54:39.045 (+3.3 s)
+2026-09-24T13:55:30.503Z single #9081  -    43dd03ba1c4504fac90cf1dbe4afe3efefeb73843c093149141dfed7fbe862fd LHR LATE delivered 13:55:31.559 (+1.1 s)
+2026-09-24T13:55:39.205Z move   #9138  -    b111986cc180039d2c6cf0ff78463cec86e538a09295b3f8493ffa1cee00e3e8 LHR LATE delivered 13:55:41.252 (+2.0 s) (/arm took 5.8 s)
+2026-09-24T13:58:37.436Z move   #10640 -    17ed4b2861238a3c171ef836cc6f550aa0d4cce0627ac792a58790c0032b13fe LHR LATE delivered 13:58:42.501 (+5.1 s); not run at the first read, getAlarm()=null
+2026-09-24T13:58:58.190Z move   #10820 -    bee59ef9b58864bf92e5b0279871293a70af1f59f9a28ccb18549b61c37670e1 LHR HELD [rearm] getAlarm()=13:58:58.190 at +4.1 s; setAlarm(now + 1 ms) at 13:59:02.294 -> delivered 35 ms later (same instance)
+2026-09-24T13:59:04.160Z move   #10870 -    7305741f27fb4d2ef4d0fe772a2e32140413fd0b5e63a91c9ec013cbd0a3ea0c LHR HELD [idle] getAlarm()=13:59:04.160 at +4.1 s; delivered 13:59:23.212 (+19.1 s, new instance)
+2026-09-24T13:37:44.822Z move   #212   wnam 8cfcba193468a51974b29b16769df5779f463a02997088f8465042aa201325f1 DFW HELD [wait] getAlarm()=13:37:44.822 at +4.2..+14.5 s (3 reads); delivered 13:38:04.169 (+19.3 s, same instance)
+2026-09-24T13:38:42.673Z move   #660   enam f69bd4682bdb573c1d4d9d2dc5639a377d2fc21b382c4c03b3af84fabfdfbc96 MIA HELD [rearm] getAlarm()=13:38:42.673 at +4.2 s; setAlarm(now + 1 ms) at 13:38:47.019 -> delivered 77 ms later (same instance)
+2026-09-24T13:40:18.058Z move   #1406  wnam 6a54517dfa8792baca5767e308e9e9dc751221cefa02e7f006665a007b095aa8 DEN HELD [same] getAlarm()=13:40:18.058 at +4.2 s; setAlarm(the same time) at 13:40:22.380 -> delivered 46 ms later (same instance)
+2026-09-24T13:41:00.066Z move   #1690  apac ff7cf9760a8b7b2cc610cef640fdcc2258a4a80d0ee59e4b219836b2e67bfe71 NRT HELD [put] getAlarm()=13:41:00.066 at +4.3 s; storage.put() alone at 13:41:04.622 -> delivered 14221 ms later (same instance)
+2026-09-24T13:41:37.287Z move   #1992  enam 05da53f4bd27dabb86939ee9282924b6aa1ac7882c8fb078c3ab4e6963215f18 IAD HELD [rearm] getAlarm()=13:41:37.287 at +4.2 s; setAlarm(now + 1 ms) at 13:41:41.546 -> delivered 32 ms later (same instance)
+2026-09-24T13:41:12.194Z move   #1814  wnam 81a9ee5390fde23957e99efb3765c7884bd57a94c816f48865d158ab9cb67104 DFW HELD [wait] getAlarm()=13:41:12.194 at +4.2..+35.1 s (7 reads); delivered 13:41:51.125 (+38.9 s, same instance)
+2026-09-24T13:42:04.527Z move   #2194  apac b9d5a9869a5ce2afa1c5d32f04d00e323d3091c178ffd540c2c1a4f7b5347c23 SIN HELD [same] getAlarm()=13:42:04.527 at +4.3 s; setAlarm(the same time) at 13:42:08.993 -> delivered 16 ms later (same instance)
+2026-09-24T13:40:11.150Z move   #1352  wnam 8d07404bf3806fdf2873d0de58622feef6d0a9581b2cb922f38f8ac5855bf5e4 SEA HELD [idle] getAlarm()=13:40:11.150 at +4.2 s; delivered 13:41:09.464 (+58.3 s, new instance, at the replaced +60 s time)
+2026-09-24T13:42:24.409Z move   #2344  apac 2b02c8b28c23cb769fecf1f0cb77f3c399aaf4fd4f6bb53ecdf5cd165a93985c KIX HELD [put] getAlarm()=13:42:24.409 at +4.3 s; storage.put() alone at 13:42:28.983 -> delivered 14396 ms later (same instance)
+2026-09-24T13:42:57.506Z move   #2594  wnam cacb4552ce79081332b6c04b5db5843c7ed39e181146030729b92c46fbc5b8fe SJC HELD [rearm] getAlarm()=13:42:57.506 at +4.2 s; setAlarm(now + 1 ms) at 13:43:01.911 -> delivered 63 ms later (same instance)
+2026-09-24T13:42:52.029Z move   #2548  apac 07534a4c05203bc5493c3d9974df258fb97a37f2a2182b361b97ac09fec384d0 KIX HELD [wait] getAlarm()=13:42:52.029 at +4.3..+24.3 s (4 reads); delivered 13:43:16.354 (+24.3 s, new instance)
+2026-09-24T13:43:33.418Z move   #2860  apac b28a6fe8eb42ff95cd7fcd88328fd0ed18157900d36f806dca5cfab1a9da1983 KIX HELD [same] getAlarm()=13:43:33.418 at +4.3 s; setAlarm(the same time) at 13:43:37.963 -> delivered 22 ms later (same instance)
+2026-09-24T13:41:55.213Z move   #2122  apac b14024f4491a59703345c567b2d934a4887a72702b0707dc6bb01eaac1d6ec62 SIN HELD [idle] getAlarm()=13:41:55.213 at +4.2 s; delivered 13:42:53.634 (+58.4 s, new instance, at the replaced +60 s time)
+2026-09-24T13:44:04.698Z move   #3094  apac 6d9a2e2245929628ed8563d397e698edc279d01d0a8be8142e461c426380512a SIN HELD [put] getAlarm()=13:44:04.698 at +4.2 s; storage.put() alone at 13:44:09.093 -> delivered 14660 ms later (same instance)
+2026-09-24T13:44:07.945Z move   #3120  enam 99a004716e77a5265a98123ca992c672f6a1ca815e0bffe8c82cb40c5340999f ORD HELD [wait] getAlarm()=13:44:07.945 at +4.2..+55.5 s (11 reads); delivered 13:45:06.303 (+58.4 s, same instance, at the replaced +60 s time)
+2026-09-24T13:45:01.703Z move   #3518  wnam 72d73826aea3f849f4e951047d213508179e36b760673470b68b13b4f625d32a SJC LATE delivered 13:45:02.876 (+1.2 s)
+2026-09-24T13:45:05.132Z single #3543  wnam bed86379f1fb3aec7c78f2543bb85467a5c24032a9dc00a16b2dd4b263482d90 SJC LATE delivered 13:45:06.248 (+1.1 s)
+2026-09-24T13:43:27.716Z move   #2812  apac 547a73df7e804cc8c9944f1f22c4de7376d28b53774868096a4949d00a5dc509 HKG HELD [idle] getAlarm()=13:43:27.716 at +4.4 s; delivered 13:44:25.504 (+57.8 s, new instance, at the replaced +60 s time)
+2026-09-24T13:45:29.173Z move   #3722  wnam ac1903d8a26f609c5d2d0ae337106cb1e09e2f961ee2c5d5aa21620198bec10f DFW HELD [rearm] getAlarm()=13:45:29.173 at +4.2 s; setAlarm(now + 1 ms) at 13:45:33.526 -> delivered 70 ms later (same instance)
+2026-09-24T13:46:38.135Z move   #4232  wnam 2fdf07f60f8c2087ea8543311d1d356837ee5d9375a6b27c791d624833362a9e DEN HELD [same] getAlarm()=13:46:38.135 at +4.2 s; setAlarm(the same time) at 13:46:42.478 -> delivered 55 ms later (same instance)
+2026-09-24T13:47:43.657Z move   #4724  wnam 0cbaf1813537ac77a59702325efc911ac82b661aeda75bca40a89d2eacbd4e78 DFW HELD [rearm] getAlarm()=13:47:43.657 at +4.2 s; setAlarm(now + 1 ms) at 13:47:48.046 -> delivered 94 ms later (same instance)
+2026-09-24T13:45:48.653Z move   #3876  enam cba3812de38ed479a682c19c77f2a5ecef321936a1f0567398b31bc4c10ead74 EWR HELD [idle] getAlarm()=13:45:48.653 at +4.1 s; delivered 13:46:47.018 (+58.4 s, new instance, at the replaced +60 s time)
+2026-09-24T13:47:53.909Z move   #4786  apac 6d7d20152d4fb778e8b1b9f8c47ca00ee2f44a1d46a40657797d2f00458509cd NRT HELD [same] getAlarm()=13:47:53.909 at +4.3 s; setAlarm(the same time) at 13:47:58.565 -> delivered 43 ms later (same instance)
+2026-09-24T13:47:25.262Z move   #4584  enam c93176a18b3328455fc4819d9cd9ca6ef33219da60450f241cb6b24fe0dd3d2f ATL HELD [put] getAlarm()=13:47:25.262 at +4.2 s; storage.put() alone at 13:47:29.554 -> delivered 34670 ms later (same instance)
+2026-09-24T13:48:13.311Z move   #4936  apac c157c294dce886d8b1f210e432b0b7413679d220bb937ebc2bf786da61db3c8a SIN HELD [wait] getAlarm()=13:48:13.311 at +4.2..+14.6 s (3 reads); delivered 13:48:32.321 (+19.0 s, same instance)
+2026-09-24T13:48:30.414Z move   #5060  wnam b041566ae41cbd87b5f2b04d02f61aa2fcc5ae6a6e34febb07822c71f9e74420 SEA HELD [rearm] getAlarm()=13:48:30.414 at +4.3 s; setAlarm(now + 1 ms) at 13:48:34.865 -> delivered 90 ms later (same instance)
+2026-09-24T13:47:43.274Z move   #4722  enam 9378a463e73b0380858b943d6114bb39ece4dbe4ef2a1d81602888a17852afdc MIA HELD [wait] getAlarm()=13:47:43.274 at +4.2..+55.6 s (11 reads); delivered 13:48:41.574 (+58.3 s, same instance, at the replaced +60 s time)
+2026-09-24T13:48:50.049Z move   #5202  enam 3d39656401808ac1706790bbda54903db7f88241b9a6385c89fbfe091a5f50a1 MIA HELD [same] getAlarm()=13:48:50.049 at +4.3 s; setAlarm(the same time) at 13:48:54.467 -> delivered 101 ms later (same instance)
+2026-09-24T13:48:10.608Z move   #4918  apac 3766a7385c62031f9945d13f7c693cbfe5d8ca3a73a98a030922615b63451131 SIN HELD [put] getAlarm()=13:48:10.608 at +4.2 s; storage.put() alone at 13:48:14.995 -> delivered 53942 ms later (same instance)
+2026-09-24T13:49:25.665Z move   #5458  apac ba3f1a2a7e28d3f0331e63cad82ef1b6d3263d84ad0e5914a28b29c7daecbabf SIN HELD [rearm] getAlarm()=13:49:25.665 at +4.2 s; setAlarm(now + 1 ms) at 13:49:30.052 -> delivered 559 ms later (same instance)
+2026-09-24T13:49:05.814Z move   #5322  enam 201d7e2b0ba57face05003c5bfd3e109392c9576aa0152dbc846119cd745e8b4 EWR HELD [wait] getAlarm()=13:49:05.814 at +4.2..+34.8 s (7 reads); delivered 13:49:44.853 (+39.0 s, same instance)
+2026-09-24T13:47:47.671Z move   #4752  enam e90559f1a18c213242c7442b6072d61604ffc01b273c2ac5b650e875b087c808 EWR HELD [idle] getAlarm()=13:47:47.671 at +4.1 s; delivered 13:48:06.708 (+19.0 s, new instance)
+2026-09-24T13:48:53.382Z move   #5224  apac 9ce23dabf0fe7a130e5f03457360b001f58036d3cbab408d48029a845ba3f4e2 HKG HELD [put] getAlarm()=13:48:53.382 at +4.4 s; storage.put() alone at 13:48:58.002 -> delivered 53521 ms later (same instance)
+2026-09-24T13:49:53.973Z move   #5656  apac 5fe2e0a670587bbedbfa2c12b49225bd5ed77ef685ec98eae945576ced9911cd HKG HELD [same] getAlarm()=13:49:53.973 at +4.4 s; setAlarm(the same time) at 13:49:58.599 -> delivered 79 ms later (same instance)
+2026-09-24T13:48:43.937Z move   #5156  wnam 568c948beb2a5c0ffcbd03c76a966a795a643d3fda5cf7917782ad3bf353e5e7 SJC HELD [idle] getAlarm()=13:48:43.937 at +4.2 s; delivered 13:49:02.849 (+18.9 s, new instance)
+2026-09-24T13:50:30.172Z move   #5934  enam ef6b6ce4bbfad15614af78f796c2f7f82f2198ccb66b7a3aa71e7791d50271b8 IAD HELD [put] getAlarm()=13:50:30.172 at +4.2 s; storage.put() alone at 13:50:34.446 -> delivered 54063 ms later (same instance)
+2026-09-24T13:49:30.337Z move   #5488  apac 4f2fbf9924e80e416951d4c41dd8584e93d688270320a02aafe836e186d7aed5 HKG HELD [idle] getAlarm()=13:49:30.337 at +4.4 s; delivered 13:50:28.495 (+58.2 s, new instance, at the replaced +60 s time)
+2026-09-24T13:51:26.531Z move   #6338  wnam 376e9cf47b6d878146e13e4871b344e21496fdee7f63b18b8cfd218b3cfa3f8c SJC HELD [rearm] getAlarm()=13:51:26.531 at +4.2 s; setAlarm(now + 1 ms) at 13:51:30.883 -> delivered 34 ms later (same instance)
+2026-09-24T13:50:45.121Z move   #6042  enam 66c3a5dd2ab8bb00da6406f60c14dfded0f082c63ac4691506a2792007eec845 MIA HELD [wait] getAlarm()=13:50:45.121 at +4.2..+55.6 s (11 reads); delivered 13:51:43.405 (+58.3 s, same instance, at the replaced +60 s time)
+2026-09-24T13:52:06.487Z move   #6636  enam 49f2dac83247259ff44efc0681e857643e94f041292d1c2c17cbeb0a0e885632 MIA HELD [same] getAlarm()=13:52:06.487 at +4.2 s; setAlarm(the same time) at 13:52:10.848 -> delivered 77 ms later (same instance)
+2026-09-24T13:52:57.188Z move   #7020  enam 1f548b41c5bb440da393d73de1ea88b3fc7b13c198e5e706dc7b6cb1a8a36697 EWR HELD [put] getAlarm()=13:52:57.188 at +4.1 s; storage.put() alone at 13:53:01.427 -> delivered 34839 ms later (same instance)
+2026-09-24T13:51:57.457Z move   #6562  apac 251c178602c740987707cc69e8c67ea84498bc34c1fedb4cda0e7a8154ec040c ICN HELD [idle] getAlarm()=13:51:57.457 at +4.4 s; delivered 13:52:36.189 (+38.7 s, new instance)
+2026-09-24T13:53:33.704Z move   #7260  enam 4b4bb19a24a004f735074adcee57d5e60b1827ffab99fd8a6c608af01e04868d EWR HELD [wait] getAlarm()=13:53:33.704 at +4.2..+34.8 s (7 reads); delivered 13:54:12.733 (+39.0 s, same instance)
+2026-09-24T13:54:20.609Z move   #7646  wnam 0df52615809628d9de832f8db89add1f70b05b696497ed95ba1dcb467bcfb2bb DEN HELD [rearm] getAlarm()=13:54:20.609 at +4.2 s; setAlarm(now + 1 ms) at 13:54:24.991 -> delivered 66 ms later (same instance)
+2026-09-24T13:54:46.244Z move   #7840  apac 8814d0ebd223d6f99d25cfaef4188b662f445a07b24c00eab287db8e9484cb53 HKG HELD [same] getAlarm()=13:54:46.244 at +4.4 s; setAlarm(the same time) at 13:54:50.865 -> delivered 85 ms later (same instance)
+2026-09-24T13:55:04.234Z move   #7982  wnam 81a5ae1858b948608e59965d41c099981291b64a4d6fc9e7483c3b562b74b0b0 DFW HELD [put] getAlarm()=13:55:04.234 at +4.2 s; storage.put() alone at 13:55:08.557 -> delivered 34772 ms later (same instance)
+2026-09-24T13:55:50.369Z move   #8324  wnam 6e2f768d515fc39e81898fc2169e98f49d15fac9471cabcb178b35c6afa6b623 SJC HELD [rearm] getAlarm()=13:55:50.369 at +4.3 s; setAlarm(now + 1 ms) at 13:55:54.798 -> delivered 61 ms later (same instance)
+2026-09-24T13:55:19.275Z move   #8090  wnam 8a5695607faa04b5534bff2e40db5f94080cd5bd99f26253003fb5897efcdaa4 SEA HELD [wait] getAlarm()=13:55:19.275 at +4.3..+35.3 s (7 reads); delivered 13:55:58.308 (+39.0 s, same instance)
+2026-09-24T13:54:21.368Z move   #7648  apac 799a5db1b7a096bea42b000f9bd081052fa456695d5b6e635078a7d14959ea55 KIX HELD [idle] getAlarm()=13:54:21.368 at +4.4 s; delivered 13:55:00.267 (+38.9 s, new instance)
+2026-09-24T13:56:42.161Z move   #8694  enam 7aac9257031f7ae8debb758fc9338053939453047b1120136d3018a281ed5379 ATL HELD [same] getAlarm()=13:56:42.161 at +4.2 s; setAlarm(the same time) at 13:56:46.436 -> delivered 44 ms later (same instance)
+2026-09-24T13:57:00.116Z move   #8828  wnam 85370ec1b9687e594d64b2bec1ee30607607338fda53527e0fba51930b8edcc5 DFW HELD [put] getAlarm()=13:57:00.116 at +4.2 s; storage.put() alone at 13:57:04.450 -> delivered 14538 ms later (same instance)
+2026-09-24T13:56:15.923Z move   #8500  apac a5bb72f35551611d9058197fd40d17170428ed6bd321b7d9ff92d12a70c29bb1 ICN HELD [idle] getAlarm()=13:56:15.923 at +4.4 s; delivered 13:56:34.807 (+18.9 s, new instance)
+2026-09-24T13:57:48.671Z move   #9190  apac 61ad57faee8e9b3b402f2444cab7ef824a26428ed23189b8d69270f83cb4a196 KIX HELD [wait] getAlarm()=13:57:48.671 at +4.3..+36.3 s (7 reads); delivered 13:58:27.601 (+38.9 s, same instance)
+2026-09-24T13:58:35.494Z move   #9548  wnam 9d3e159648f63ae1afb20699e3f41da30b9586557989c46fb04358b86c4559c7 SJC HELD [rearm] getAlarm()=13:58:35.494 at +4.2 s; setAlarm(now + 1 ms) at 13:58:39.866 -> delivered 29 ms later (same instance)
+2026-09-24T13:59:19.022Z move   #9878  wnam ae1b2d08ef2ac6f1d99ba7a2e74112147f99967d64b8348aff32c9f60fb3f27b SJC HELD [same] getAlarm()=13:59:19.022 at +4.2 s; setAlarm(the same time) at 13:59:23.415 -> delivered 60 ms later (same instance)
+2026-09-24T13:59:19.220Z move   #9882  enam 8406f79416a4948e8ce32c3b9ab37401c8a2459e3e235073af4bfcf1ae5ca42b ATL HELD [put] getAlarm()=13:59:19.220 at +4.2 s; storage.put() alone at 13:59:23.536 -> delivered 34718 ms later (same instance)
+2026-09-24T13:58:45.138Z move   #9622  apac dccac031056c13df89c8a182daaf856c267fbff5e76b5c1e41e9d707ee727193 NRT HELD [idle] getAlarm()=13:58:45.138 at +4.3 s; delivered 13:59:43.371 (+58.2 s, new instance, at the replaced +60 s time)
+errors:
+2026-09-24T13:52:34.246Z move   #7360  -    ERROR Error: /arm 500: Worker threw exception | do-alarm-held-repro-verify.<subdomain>.workers.dev | Cloudflare (after 34.7 s)
+2026-09-24T13:54:54.673Z single #7897  -    ERROR Error: /arm 500: Worker threw exception | do-alarm-held-repro-verify.<subdomain>.workers.dev | Cloudflare (after 3.3 s)
+2026-09-24T13:56:09.549Z move   #8416  -    ERROR Error: /arm 500: Worker threw exception | do-alarm-held-repro-verify.<subdomain>.workers.dev | Cloudflare (after 8.2 s)
+2026-09-24T13:57:20.608Z move   #8986  -    ERROR Error: /arm 500: Worker threw exception | do-alarm-held-repro-verify.<subdomain>.workers.dev | Cloudflare (after 1.2 s)
+
+########## Check A, 14:09-14:11. The README's command with hints, for 2 minutes:
+########## --minutes 2 --hints enam,wnam,apac
+
+=== 930 trials from f1.jsonl
+move (+60 s, then +1.5 s): 465 trials, 0 errors, 6 held (not run at +4 s, getAlarm() still returning its time), 2 with /arm slower than 5 s
+  lateness of the 463 not re-armed with setAlarm() (delivery minus the alarm's time):
+    p50 0 ms, p90 1 ms, p99 22 ms, p99.9 39091 ms, max 39091 ms
+    <=10 ms: 458 | 10-100 ms: 1 | 0.1-1 s: 0 | 1 s-4 s: 0 | 4-10 s: 0 | 10-30 s: 2 | 30-60 s: 2 | >60 s: 0 | never: 0
+  held [wait], how late: 38.9 s, 39.1 s
+  held [rearm], delivered after the call: 72 ms
+  held [idle], how late: 18.9 s
+  held [same], delivered after the call: 26 ms
+  held [put], how late: 18.9 s
+  held by location hint: enam 3/155 (1.94%) | wnam 0/155 (0.00%) | apac 3/155 (1.94%)
+  held by time between the two setAlarm() calls: 50-100 ms 0/2 (0.00%) | 100-200 ms 3/238 (1.26%) | 200-500 ms 3/216 (1.39%) | >=500 ms 0/9 (0.00%)
+single (+1.5 s): 465 trials, 0 errors, 0 held (not run at +4 s, getAlarm() still returning its time), 0 with /arm slower than 5 s
+  lateness of the 465 not re-armed with setAlarm() (delivery minus the alarm's time):
+    p50 0 ms, p90 1 ms, p99 4 ms, p99.9 29 ms, max 29 ms
+    <=10 ms: 463 | 10-100 ms: 2 | 0.1-1 s: 0 | 1 s-4 s: 0 | 4-10 s: 0 | 10-30 s: 0 | 30-60 s: 0 | >60 s: 0 | never: 0
+held or late alarms:
+2026-09-24T14:09:44.440Z move   #346   apac 8034e0e7aa8f40d389cc73b4e43fb3a40101d19a0bf709482dedf1f2a24382a9 ICN HELD [rearm] getAlarm()=14:09:44.440 at +4.4 s; setAlarm(now + 1 ms) at 14:09:49.072 -> delivered 72 ms later (same instance)
+2026-09-24T14:09:30.615Z move   #246   enam ce66eeea22d11b74ce7403ad0f11a63d9b89470cd0363f85f3fc25755ac17379 MIA HELD [wait] getAlarm()=14:09:30.615 at +4.2..+35.1 s (7 reads); delivered 14:10:09.528 (+38.9 s, same instance)
+2026-09-24T14:10:07.003Z move   #502   apac 2ebacb9a2a8f355be07147008f1f209f78f6244ecc62763a78139aa8ab1b3ba3 KIX HELD [same] getAlarm()=14:10:07.003 at +4.3 s; setAlarm(the same time) at 14:10:11.593 -> delivered 26 ms later (same instance)
+2026-09-24T14:10:14.572Z move   #562   apac ba91382e1de78f20409660b62129350df1efc714497c19673f73f98dc907714a NRT HELD [put] getAlarm()=14:10:14.572 at +4.3 s; storage.put() alone at 14:10:19.197 -> delivered 14275 ms later (same instance)
+2026-09-24T14:10:44.208Z move   #786   enam b844a09463da3fbebec403d5056b1e1939c347b3da23be366c5b970d29b2c327 IAD HELD [wait] getAlarm()=14:10:44.208 at +4.1..+34.9 s (7 reads); delivered 14:11:23.299 (+39.1 s, same instance)
+2026-09-24T14:09:53.270Z move   #402   enam 9af47396f32ee936962f05290e331223c9d5f2d7b444a0409068e515d04cb673 ATL HELD [idle] getAlarm()=14:09:53.270 at +4.2 s; delivered 14:10:12.168 (+18.9 s, new instance)
+
+########## Check B, 14:11-14:19. The first alarm at +30 s instead of +60 s:
+########## --minutes 8 --shape move --later 30000 --on-held wait,idle --hints enam,wnam,apac
+
+=== 3455 trials from L30.jsonl
+move (+30 s, then +1.5 s): 3455 trials, 1 errors, 19 held (not run at +4 s, getAlarm() still returning its time), 16 with /arm slower than 5 s
+  lateness of the 3454 not re-armed with setAlarm() (delivery minus the alarm's time):
+    p50 0 ms, p90 1 ms, p99 8 ms, p99.9 28366 ms, max 28645 ms
+    <=10 ms: 3423 | 10-100 ms: 12 | 0.1-1 s: 0 | 1 s-4 s: 0 | 4-10 s: 0 | 10-30 s: 19 | 30-60 s: 0 | >60 s: 0 | never: 0
+  held [wait], how late: 28.3 s, 28.3 s, 28.2 s, 28.3 s, 28.3 s, 28.2 s, 28.2 s, 28.0 s, 28.4 s, 28.2 s
+  held [idle], how late: 28.3 s, 28.3 s, 28.6 s, 28.4 s, 28.6 s, 28.2 s, 28.3 s, 28.2 s, 28.4 s
+  held by location hint: enam 4/1152 (0.35%) | wnam 8/1152 (0.69%) | apac 7/1150 (0.61%)
+  held by time between the two setAlarm() calls: 50-100 ms 0/16 (0.00%) | 100-200 ms 4/1806 (0.22%) | 200-500 ms 14/1532 (0.91%) | >=500 ms 1/100 (1.00%)
+held or late alarms:
+2026-09-24T14:11:23.698Z move   #28    wnam 2f93330a3703cbae49316157c0de28c7fea3725280e2fff13dd0be466ec9c4de LAX HELD [wait] getAlarm()=14:11:23.698 at +4.3..+25.0 s (5 reads); delivered 14:11:51.993 (+28.3 s, same instance, at the replaced +30 s time)
+2026-09-24T14:11:54.788Z move   #244   wnam fae8d5f997349daf99834c7d58d41f69dc20afce3f35526ba7cd26a3ab512bfe DFW HELD [wait] getAlarm()=14:11:54.788 at +4.2..+24.9 s (5 reads); delivered 14:12:23.097 (+28.3 s, same instance, at the replaced +30 s time)
+2026-09-24T14:12:21.885Z move   #443   apac d54d9c5323687829288df2b1f502a7cbab1fbdab626253ed55578cbe6a7a7bf9 KIX HELD [wait] getAlarm()=14:12:21.885 at +4.3..+25.8 s (5 reads); delivered 14:12:50.129 (+28.2 s, same instance, at the replaced +30 s time)
+2026-09-24T14:12:57.444Z move   #709   wnam 8900a5436c27c17e6b76d2d56c8f3debdf13ece2341590578f3e56795bcb14d8 LAX HELD [wait] getAlarm()=14:12:57.444 at +4.3..+24.9 s (5 reads); delivered 14:13:25.716 (+28.3 s, same instance, at the replaced +30 s time)
+2026-09-24T14:11:43.559Z move   #172   wnam 369b023a2689cab11a13637d02f1d18f5c6273ea3d338afd7af32031dda81f0a SJC HELD [idle] getAlarm()=14:11:43.559 at +4.2 s; delivered 14:12:11.856 (+28.3 s, new instance, at the replaced +30 s time)
+2026-09-24T14:13:28.172Z move   #922   wnam 03487e48d761293c33450497532be6ffd1d103cfe1b383abe12a1c61dfefbfe6 SJC HELD [wait] getAlarm()=14:13:28.172 at +4.2..+24.9 s (5 reads); delivered 14:13:56.465 (+28.3 s, same instance, at the replaced +30 s time)
+2026-09-24T14:12:17.702Z move   #427   wnam 1ffa94cb34fa6931d98cf5def261785fa2fa9ce178f2662a2efcba18e54aa5a1 LAX HELD [idle] getAlarm()=14:12:17.702 at +4.2 s; delivered 14:12:46.000 (+28.3 s, new instance, at the replaced +30 s time)
+2026-09-24T14:12:48.353Z move   #636   enam d34b8e2a449a34a0e6ffb78daadd6a7151a4989c215e337220591d15688eeb5e EWR HELD [idle] getAlarm()=14:12:48.353 at +4.1 s; delivered 14:13:16.957 (+28.6 s, new instance, at the replaced +30 s time)
+2026-09-24T14:14:18.942Z move   #1265  apac 2e6a7f7a3d4d892202db6b0beaa03e79321572772ea1af9246ddeccfd4e7e500 SIN HELD [wait] getAlarm()=14:14:18.942 at +4.2..+25.1 s (5 reads); delivered 14:14:47.167 (+28.2 s, same instance, at the replaced +30 s time)
+2026-09-24T14:12:59.727Z move   #720   enam 0049a5be0976fdfe2076629846a659e2beb09086f8865cf77035869a79481873 EWR HELD [idle] getAlarm()=14:12:59.727 at +4.1 s; delivered 14:13:28.093 (+28.4 s, new instance, at the replaced +30 s time)
+2026-09-24T14:14:48.924Z move   #1478  apac 4348fd817b7bbfaff56cd97f2aee1911cc3d4fbe44bd982c98693939b62e9a01 HKG HELD [wait] getAlarm()=14:14:48.924 at +4.4..+25.5 s (5 reads); delivered 14:15:17.096 (+28.2 s, same instance, at the replaced +30 s time)
+2026-09-24T14:13:57.833Z move   #1123  wnam 0be63df06afe2b4d0cb84ff5f53dd30108c212fa356ab066b6bb7175e5dd0986 SJC HELD [idle] getAlarm()=14:13:57.833 at +4.2 s; delivered 14:14:26.478 (+28.6 s, new instance, at the replaced +30 s time)
+2026-09-24T14:14:22.453Z move   #1298  apac 7c0715eb96b636ae4f7e35687afd34157a82afd37f1faf93bc7007816406ca8c KIX HELD [idle] getAlarm()=14:14:22.453 at +4.3 s; delivered 14:14:50.690 (+28.2 s, new instance, at the replaced +30 s time)
+2026-09-24T14:16:14.454Z move   #2079  enam 4f3855f1bf72f85168bd8e36d7e6b46e4dfbe58550ba40d568c8013f8ff5b1a9 IAD HELD [wait] getAlarm()=14:16:14.454 at +4.2..+24.7 s (5 reads); delivered 14:16:42.431 (+28.0 s, same instance, at the replaced +30 s time)
+2026-09-24T14:17:23.397Z move   #2583  enam bc9bbb164cc52ca3db46deb911cf5b2316108d302722d379a8d9162e8b29588b EWR HELD [wait] getAlarm()=14:17:23.397 at +4.2..+24.6 s (5 reads); delivered 14:17:51.759 (+28.4 s, same instance, at the replaced +30 s time)
+2026-09-24T14:16:10.119Z move   #2053  wnam f46b6769f097f3bb49d47d7b9c016bc260cb5627e8083c510f8377fce8ec8dbb SJC HELD [idle] getAlarm()=14:16:10.119 at +4.2 s; delivered 14:16:38.453 (+28.3 s, new instance, at the replaced +30 s time)
+2026-09-24T14:16:37.660Z move   #2246  apac e0bf30ac3b25131e4567c85db0419628623fe1eb47d39bf1fc0e2fdd80ac1c7b HKG HELD [idle] getAlarm()=14:16:37.660 at +4.4 s; delivered 14:17:05.839 (+28.2 s, new instance, at the replaced +30 s time)
+2026-09-24T14:19:00.977Z move   #3284  apac ca80fbd82916ea677bfb80f0510e9019526dd6edf2df1ba719faca657b4e44a7 NRT HELD [wait] getAlarm()=14:19:00.977 at +4.3..+25.5 s (5 reads); delivered 14:19:29.204 (+28.2 s, same instance, at the replaced +30 s time)
+2026-09-24T14:17:32.279Z move   #2639  apac 5ee91edcdf8d57111ecc2b5e749107df97ba32e12ca8723f6c7d781187bddc9c HKG HELD [idle] getAlarm()=14:17:32.279 at +4.4 s; delivered 14:18:00.691 (+28.4 s, new instance, at the replaced +30 s time)
+errors:
+2026-09-24T14:16:03.524Z move   #1943  apac ERROR Error: /arm 500: Worker threw exception | do-alarm-held-repro.<subdomain>.workers.dev | Cloudflare (after 11.1 s)
+
+########## Check C, 14:11-14:19, beside B. The first alarm at +120 s:
+########## --minutes 8 --shape move --later 120000 --on-held wait,idle --hints enam,wnam,apac
+
+=== 3651 trials from L120.jsonl
+move (+120 s, then +1.5 s): 3651 trials, 1 errors, 0 held (not run at +4 s, getAlarm() still returning its time), 18 with /arm slower than 5 s
+  lateness of the 3650 not re-armed with setAlarm() (delivery minus the alarm's time):
+    p50 0 ms, p90 1 ms, p99 5 ms, p99.9 35 ms, max 297 ms
+    <=10 ms: 3638 | 10-100 ms: 10 | 0.1-1 s: 2 | 1 s-4 s: 0 | 4-10 s: 0 | 10-30 s: 0 | 30-60 s: 0 | >60 s: 0 | never: 0
+  held by location hint: enam 0/1217 (0.00%) | wnam 0/1216 (0.00%) | apac 0/1217 (0.00%)
+  held by time between the two setAlarm() calls: 50-100 ms 0/25 (0.00%) | 100-200 ms 0/1837 (0.00%) | 200-500 ms 0/1702 (0.00%) | >=500 ms 0/86 (0.00%)
+errors:
+2026-09-24T14:12:21.063Z move   #472   wnam ERROR Error: /arm 500: Worker threw exception | do-alarm-held-repro.<subdomain>.workers.dev | Cloudflare (after 0.5 s)
+
+########## Check D, 14:24-14:30. The Worker waits 1 s between the two setAlarm() calls; no hints:
+########## --minutes 6 --shape move --pause 1000 --on-held wait,idle
+
+=== 2068 trials from P1000.jsonl
+move (+60 s, then +1.5 s): 2068 trials, 0 errors, 55 held (not run at +4 s, getAlarm() still returning its time), 10 with /arm slower than 5 s
+  lateness of the 2068 not re-armed with setAlarm() (delivery minus the alarm's time):
+    p50 0 ms, p90 1 ms, p99 39580 ms, p99.9 57471 ms, max 57472 ms
+    <=10 ms: 2005 | 10-100 ms: 7 | 0.1-1 s: 1 | 1 s-4 s: 0 | 4-10 s: 0 | 10-30 s: 19 | 30-60 s: 36 | >60 s: 0 | never: 0
+  held [wait], how late: 19.5 s, 19.5 s, 38.7 s, 38.9 s, 57.5 s, 57.4 s, 57.5 s, 57.5 s, 18.8 s, 57.5 s, 56.5 s, 39.1 s, 38.7 s, 38.9 s, 18.9 s, 19.3 s, 57.5 s, 18.9 s, 57.5 s, 39.1 s, 57.5 s, 18.7 s, 57.5 s, 38.9 s, 57.5 s, 38.9 s, 39.0 s, 57.5 s
+  held [idle], how late: 19.0 s, 57.5 s, 57.5 s, 57.4 s, 57.5 s, 38.8 s, 38.8 s, 19.1 s, 18.9 s, 38.7 s, 18.9 s, 39.3 s, 18.7 s, 19.1 s, 57.5 s, 57.5 s, 57.4 s, 57.5 s, 38.8 s, 18.6 s, 18.9 s, 19.0 s, 19.1 s, 18.8 s, 38.9 s, 39.6 s, 18.6 s
+  held by location hint: none 55/2068 (2.66%)
+  held by time between the two setAlarm() calls: >=500 ms 55/2068 (2.66%)
+held or late alarms:
+2026-09-24T14:24:10.944Z move   #25    -    6a125515311a9159f09dd54a4e41718035915a1f85a403b189d8a65572160b9d AMS HELD [wait] getAlarm()=14:24:10.944 at +4.1..+19.2 s (4 reads); delivered 14:24:30.459 (+19.5 s, same instance)
+2026-09-24T14:24:31.991Z move   #179   -    da85c6a20816c08d8985aa7fe2f77582726fcc5e4ac971a8bfa67e7701533bf7 LHR HELD [wait] getAlarm()=14:24:31.991 at +4.1..+14.6 s (3 reads); delivered 14:24:51.443 (+19.5 s, same instance)
+2026-09-24T14:24:24.886Z move   #116   -    9a454b69563fcbe939765470316b074068420540f7963091d2e97547eaf3a25c LHR HELD [wait] getAlarm()=14:24:24.886 at +4.1..+34.3 s (7 reads); delivered 14:25:03.625 (+38.7 s, same instance)
+2026-09-24T14:24:38.941Z move   #222   -    e74e9e5f3ff63e680f63ea926e2bfc189d95695884a6c7fb1db62ba7878d9991 LHR HELD [wait] getAlarm()=14:24:38.941 at +4.1..+34.3 s (7 reads); delivered 14:25:17.811 (+38.9 s, same instance)
+2026-09-24T14:25:06.762Z move   #386   -    e438cf8206b3c09c001167c25ae9a6914ef2013aa7a27d5d37dad2808bda723c LHR HELD [wait] getAlarm()=14:25:06.762 at +4.1..+54.5 s (11 reads); delivered 14:26:04.229 (+57.5 s, same instance, at the replaced +60 s time)
+2026-09-24T14:25:14.119Z move   #444   -    687e883c5674ac7aa7adcca8c6dab53536bb41cf2f8417d01a915afa07a432f1 LHR HELD [wait] getAlarm()=14:25:14.119 at +4.1..+54.8 s (11 reads); delivered 14:26:11.520 (+57.4 s, same instance, at the replaced +60 s time)
+2026-09-24T14:24:17.942Z move   #74    -    3919464530836c46fa1477800ae705a2029b632cd822544b1407409eb44960b5 LHR HELD [idle] getAlarm()=14:24:17.942 at +4.1 s; delivered 14:24:36.972 (+19.0 s, new instance)
+2026-09-24T14:25:21.540Z move   #495   -    e0ec43fa6cabc4fa83c6ebefa78f0112b9ff990709ecbc41a2b64f788e365c36 LHR HELD [wait] getAlarm()=14:25:21.540 at +4.1..+54.5 s (11 reads); delivered 14:26:19.011 (+57.5 s, same instance, at the replaced +60 s time)
+2026-09-24T14:24:25.487Z move   #144   -    168d138bff99d1cb9efd322b83daa30f514ee3aa7406cb0aefb3a869672ad1d1 LHR HELD [idle] getAlarm()=14:24:25.487 at +4.1 s; delivered 14:25:22.951 (+57.5 s, new instance, at the replaced +60 s time)
+2026-09-24T14:24:32.047Z move   #176   -    b4fdf2aef562eb5b0b989ebee1522aed9915bba422d1839e579cbd25bde647ca LHR HELD [idle] getAlarm()=14:24:32.047 at +4.1 s; delivered 14:25:29.518 (+57.5 s, new instance, at the replaced +60 s time)
+2026-09-24T14:25:35.398Z move   #575   -    fb5605fe30c9df730d51d43608f8933f53dbd1a9d6bff0ad1992a6306977f0a2 LHR HELD [wait] getAlarm()=14:25:35.398 at +4.1..+54.5 s (11 reads); delivered 14:26:32.867 (+57.5 s, same instance, at the replaced +60 s time)
+2026-09-24T14:24:46.764Z move   #280   -    6107d43904916c86bfbae3b616f15bfd461f6d1a5c1748fb936bb371193e7d0e LHR HELD [idle] getAlarm()=14:24:46.764 at +4.1 s; delivered 14:25:44.208 (+57.4 s, new instance, at the replaced +60 s time)
+2026-09-24T14:26:31.683Z move   #858   -    47db5b764e234f88101e454e625cd1dfeba5751c4965e504a3d34f5c008823db LHR HELD [wait] getAlarm()=14:26:31.683 at +4.1..+14.1 s (3 reads); delivered 14:26:50.493 (+18.8 s, same instance)
+2026-09-24T14:25:57.145Z move   #693   -    f44e896cfe7a14a49a507211f43ccb8397ed2276884844e080f6d32e6c71ea5d LHR HELD [wait] getAlarm()=14:25:57.145 at +4.1..+54.5 s (11 reads); delivered 14:26:54.612 (+57.5 s, same instance, at the replaced +60 s time)
+2026-09-24T14:26:10.446Z move   #731   -    313a9c2bdcc52e0bf6a4808a6b7ad51f44c69c07d5f01de2bfff9cf3a1884d8f LHR HELD [wait] getAlarm()=14:26:10.446 at +4.1..+54.6 s (11 reads); delivered 14:27:06.933 (+56.5 s, same instance, at the replaced +60 s time)
+2026-09-24T14:25:13.354Z move   #418   -    a99a96aeb8b7c21846234b8baf704f6e11c9d46795b12d9ef497a4e794df8d97 LHR HELD [idle] getAlarm()=14:25:13.354 at +4.1 s; delivered 14:26:10.822 (+57.5 s, new instance, at the replaced +60 s time)
+2026-09-24T14:26:38.641Z move   #899   -    2d5b85b932a993ef5ca2180e0f70aad5ef22d80e863295a67788594e0e21c829 LHR HELD [wait] getAlarm()=14:26:38.641 at +4.0..+34.3 s (7 reads); delivered 14:27:17.697 (+39.1 s, same instance)
+2026-09-24T14:25:20.753Z move   #478   -    ebe11bc2514c341b205820d62ad0a55ebf728d0f3c241eeb81b17de7cf818e97 LHR HELD [idle] getAlarm()=14:25:20.753 at +4.1 s; delivered 14:25:59.580 (+38.8 s, new instance)
+2026-09-24T14:25:34.192Z move   #546   -    17ff6859a5f8d0054502621736f0ff484b04bccd6e9b5a5afcd90505b0a37bd7 LHR HELD [idle] getAlarm()=14:25:34.192 at +4.1 s; delivered 14:26:12.998 (+38.8 s, new instance)
+2026-09-24T14:25:41.882Z move   #603   -    ce8649e7306958e3e5b00f5c262ee39fe9c20bdd7e96392b2b31757f0ba61a97 LHR HELD [idle] getAlarm()=14:25:41.882 at +4.1 s; delivered 14:26:00.953 (+19.1 s, new instance)
+2026-09-24T14:27:06.612Z move   #1056  -    a275326f574bc2a2dbabf17e2bd31e041a72dd3409afbaff80ce5829b5c286ff LHR HELD [wait] getAlarm()=14:27:06.612 at +4.1..+34.3 s (7 reads); delivered 14:27:45.320 (+38.7 s, same instance)
+2026-09-24T14:27:21.906Z move   #1151  -    92177f8ca1764dc0e929617bb4f45860c93c824d256f1564bf0875b8de6ca600 LHR HELD [wait] getAlarm()=14:27:21.906 at +4.1..+34.3 s (7 reads); delivered 14:28:00.763 (+38.9 s, same instance)
+2026-09-24T14:27:42.809Z move   #1271  -    42118290f879a50c2d6ecbc35973dfaf240f4fb3da0083090b0b6ae7167d823f LHR HELD [wait] getAlarm()=14:27:42.809 at +4.1..+14.1 s (3 reads); delivered 14:28:01.699 (+18.9 s, same instance)
+2026-09-24T14:26:03.359Z move   #725   -    e5f7bb0557f54463bedbace6860c86db1c94c228d5b1c7eaeec0000b617cb536 LHR HELD [idle] getAlarm()=14:26:03.359 at +4.1 s; delivered 14:26:22.256 (+18.9 s, new instance)
+2026-09-24T14:26:23.671Z move   #812   -    e81817932f52b81faca800935d8bddaf2c5b4f97dee02a4982a497e046be661c LHR HELD [idle] getAlarm()=14:26:23.671 at +4.1 s; delivered 14:27:02.356 (+38.7 s, new instance)
+2026-09-24T14:27:57.686Z move   #1360  -    f2cc42cb146a7ae110d55eebe9912e05dd02bffa483756b3b57accd94b7465ae AMS HELD [wait] getAlarm()=14:27:57.686 at +4.1..+19.2 s (4 reads); delivered 14:28:16.990 (+19.3 s, same instance)
+2026-09-24T14:26:37.549Z move   #890   -    28e30af40bdf6502f7827cdb6cdcf9d5eab95a0f4bf507dd19e236ab9f24892a LHR HELD [idle] getAlarm()=14:26:37.549 at +4.1 s; delivered 14:26:56.455 (+18.9 s, new instance)
+2026-09-24T14:28:02.594Z move   #1383  -    2b5e2c35e0b40a00ccc92f36b501787014bc470b22112d207011f2b2a05a91d3 LHR HELD [wait] getAlarm()=14:28:02.594 at +4.1..+54.4 s (11 reads); delivered 14:29:00.055 (+57.5 s, same instance, at the replaced +60 s time)
+2026-09-24T14:27:05.274Z move   #1045  -    80861d1e2b4285c2bf7e50d1df5603a8c654ddd9f799f14571693948e4a8d32d AMS HELD [idle] getAlarm()=14:27:05.274 at +4.1 s; delivered 14:27:44.545 (+39.3 s, new instance)
+2026-09-24T14:28:46.713Z move   #1633  -    88aee1748715cf7221363018b702558a28635cbadd2ff1eb3df68ac46ebaf7c9 LHR HELD [wait] getAlarm()=14:28:46.713 at +4.1..+14.2 s (3 reads); delivered 14:29:05.632 (+18.9 s, same instance)
+2026-09-24T14:28:06.943Z move   #1412  -    f1b885753f8097b0d989f3db713a7d5398db69c58c80935fefad11b5942bd27a LHR HELD [wait] getAlarm()=14:28:06.943 at +4.1..+54.5 s (11 reads); delivered 14:29:04.415 (+57.5 s, same instance, at the replaced +60 s time)
+2026-09-24T14:28:37.962Z move   #1585  -    915ca5cfbb4375658b293fe47149ec421aa3d9f0ec2824ddec2a67089353b6e3 LHR HELD [wait] getAlarm()=14:28:37.962 at +4.1..+34.3 s (7 reads); delivered 14:29:17.021 (+39.1 s, same instance)
+2026-09-24T14:27:19.220Z move   #1130  -    c2cc6c8a2c6514d84bf6ed07e4437bb1b59c689767ef29c064e62a818ac9543d LHR HELD [idle] getAlarm()=14:27:19.220 at +4.1 s; delivered 14:27:37.969 (+18.7 s, new instance)
+2026-09-24T14:28:21.031Z move   #1489  -    8940d17be919a2ab0ed73666d6d4c1e9015f44151217a46ff47428be2dc48b60 AMS HELD [wait] getAlarm()=14:28:21.031 at +4.1..+54.6 s (11 reads); delivered 14:29:18.494 (+57.5 s, same instance, at the replaced +60 s time)
+2026-09-24T14:27:25.450Z move   #1166  -    f99f5f616f6b733eacff3cc8c45c80ea74e27bbbbcf5a6a0ef2abada3f9961ec LHR HELD [idle] getAlarm()=14:27:25.450 at +4.1 s; delivered 14:27:44.509 (+19.1 s, new instance)
+2026-09-24T14:29:24.293Z move   #1825  -    b99335c53eed7dcd7d69b4fba1d2f70fd60ef1fe31b5dccbdbd64be02a4acb60 LHR HELD [wait] getAlarm()=14:29:24.293 at +4.1..+14.1 s (3 reads); delivered 14:29:43.042 (+18.7 s, same instance)
+2026-09-24T14:28:47.255Z move   #1636  -    ce057eeaad000f4579c7ff68ec26b52bdb0b6dec3d0226d9b367efad7ed3d685 LHR HELD [wait] getAlarm()=14:28:47.255 at +4.1..+54.4 s (11 reads); delivered 14:29:44.720 (+57.5 s, same instance, at the replaced +60 s time)
+2026-09-24T14:27:46.640Z move   #1293  -    3aac971e774edd3593eb31812c84d57d0728a1c8c50ecc1a734b8b2a709300a8 LHR HELD [idle] getAlarm()=14:27:46.640 at +4.0 s; delivered 14:28:44.111 (+57.5 s, new instance, at the replaced +60 s time)
+2026-09-24T14:29:18.425Z move   #1789  -    fb662c3063d10508d7807640024355abf681e750d86b7ddc4ddb4e176da96cd4 LHR HELD [wait] getAlarm()=14:29:18.425 at +4.1..+34.3 s (7 reads); delivered 14:29:57.282 (+38.9 s, same instance)
+2026-09-24T14:27:58.404Z move   #1362  -    a6f57f6c510c7610cc562b8df6cadfdcef15750a3242fc845788fbc83d3d6001 LHR HELD [idle] getAlarm()=14:27:58.404 at +4.1 s; delivered 14:28:55.873 (+57.5 s, new instance, at the replaced +60 s time)
+2026-09-24T14:29:02.985Z move   #1714  -    f514804e2535304c419b5fdad10df2a49f7dd308677608847aefa7f731eba18d LHR HELD [wait] getAlarm()=14:29:02.985 at +4.1..+54.5 s (11 reads); delivered 14:30:00.453 (+57.5 s, same instance, at the replaced +60 s time)
+2026-09-24T14:28:06.327Z move   #1406  -    1e4bf8c9ebedd3bfe12950920619dc3b8880c2ef46b4545f8725ded62f0723dd LHR HELD [idle] getAlarm()=14:28:06.327 at +4.1 s; delivered 14:29:03.750 (+57.4 s, new instance, at the replaced +60 s time)
+2026-09-24T14:28:11.133Z move   #1436  -    82290cfac731251dc847a0200578d3d3da61f8e6aabb5b20b0e9d0d6b14159bc LHR HELD [idle] getAlarm()=14:28:11.133 at +4.1 s; delivered 14:29:08.585 (+57.5 s, new instance, at the replaced +60 s time)
+2026-09-24T14:29:40.456Z move   #1907  -    1c804719a2fc40b7ff4a0545ce25917284099c46a81a351117a2402dbfb2b9bd LHR HELD [wait] getAlarm()=14:29:40.456 at +4.1..+34.3 s (7 reads); delivered 14:30:19.353 (+38.9 s, same instance)
+2026-09-24T14:28:36.042Z move   #1571  -    c5431ba2f2e80c938b4c2f43d77385705d8574d1054ff551df2bae4c00ed4116 LHR HELD [idle] getAlarm()=14:28:36.042 at +4.1 s; delivered 14:29:14.804 (+38.8 s, new instance)
+2026-09-24T14:30:04.877Z move   #2038  -    0e1a25843bafebf9596a2b6b5b42de2f44141f3f96933cfa913a83cd0e53aaa7 AMS HELD [wait] getAlarm()=14:30:04.877 at +4.1..+34.5 s (7 reads); delivered 14:30:43.895 (+39.0 s, same instance)
+2026-09-24T14:28:44.841Z move   #1620  -    fcee694e727c1369ed2d9eaf3bdc34b8fb89dfb0e67eed5c18e671f2bfdf7b68 LHR HELD [idle] getAlarm()=14:28:44.841 at +4.2 s; delivered 14:29:03.439 (+18.6 s, new instance)
+2026-09-24T14:28:46.801Z move   #1634  -    b433d10bd01d3471adca6fc9760c1e3841efadeeb92ba8cb8edd6f4753cb7e75 AMS HELD [idle] getAlarm()=14:28:46.801 at +4.1 s; delivered 14:29:05.698 (+18.9 s, new instance)
+2026-09-24T14:30:00.555Z move   #2009  -    2817ca8f0d00d8a958fb280199ddcb4bee4044f549d0ba402e89127a481a0462 AMS HELD [wait] getAlarm()=14:30:00.555 at +4.1..+54.7 s (11 reads); delivered 14:30:58.021 (+57.5 s, same instance, at the replaced +60 s time)
+2026-09-24T14:29:01.771Z move   #1709  -    abc99cf2416eb61e1c1bd82b39d7950fa35b71477400daff35f65619181c5649 LHR HELD [idle] getAlarm()=14:29:01.771 at +4.1 s; delivered 14:29:20.724 (+19.0 s, new instance)
+2026-09-24T14:29:07.997Z move   #1738  -    e23d583bea86cabd429c6c71a8539e3b2a019880d5e0c0fbfdb4712fffe2d3fb LHR HELD [idle] getAlarm()=14:29:07.997 at +4.1 s; delivered 14:29:27.070 (+19.1 s, new instance)
+2026-09-24T14:29:20.571Z move   #1806  -    fa083042896444bd8696b1f7c21dbf5bd95455fe076a3782316f058deef96a87 LHR HELD [idle] getAlarm()=14:29:20.571 at +4.1 s; delivered 14:29:39.390 (+18.8 s, new instance)
+2026-09-24T14:29:39.875Z move   #1902  -    702ab42a24be96243d3d50b0fc00c9bfccdf07b898ad043a20b0393556c2c570 LHR HELD [idle] getAlarm()=14:29:39.875 at +4.1 s; delivered 14:30:18.770 (+38.9 s, new instance)
+2026-09-24T14:29:47.162Z move   #1939  -    036c3a9e498c2ef808c4e45d5325d462183f20d01540faf80f2b0fdd7d083e50 LHR HELD [idle] getAlarm()=14:29:47.162 at +4.3 s; delivered 14:30:26.742 (+39.6 s, new instance)
+2026-09-24T14:30:00.722Z move   #2010  -    d81d1b504945c2d92b87569cc9f40090ce744f705a983549b5cb34d6bde5b08a LHR HELD [idle] getAlarm()=14:30:00.722 at +4.1 s; delivered 14:30:19.356 (+18.6 s, new instance)
+
+########## Check E, 14:24-14:30, beside D. A 5 s wait:
+########## --minutes 6 --shape move --pause 5000 --on-held wait,idle
+
+=== 1415 trials from P5000.jsonl
+move (+60 s, then +1.5 s): 1415 trials, 0 errors, 40 held (not run at +4 s, getAlarm() still returning its time), 1 with /arm slower than 5 s
+  lateness of the 1415 not re-armed with setAlarm() (delivery minus the alarm's time):
+    p50 0 ms, p90 2 ms, p99 39861 ms, p99.9 53473 ms, max 53861 ms
+    <=10 ms: 1373 | 10-100 ms: 2 | 0.1-1 s: 0 | 1 s-4 s: 0 | 4-10 s: 0 | 10-30 s: 12 | 30-60 s: 28 | >60 s: 0 | never: 0
+  held [wait], how late: 18.8 s, 18.8 s, 38.9 s, 18.9 s, 53.4 s, 18.8 s, 18.7 s, 38.9 s, 38.7 s, 39.2 s, 19.0 s, 53.5 s, 53.5 s, 19.1 s, 53.5 s, 19.1 s, 39.1 s, 18.8 s, 53.5 s, 38.6 s
+  held [idle], how late: 39.0 s, 53.5 s, 53.5 s, 39.9 s, 19.1 s, 39.7 s, 53.5 s, 38.8 s, 38.7 s, 53.9 s, 18.7 s, 53.5 s, 39.1 s, 53.1 s, 53.5 s, 53.5 s, 19.1 s, 38.8 s, 53.5 s, 39.1 s
+  held by location hint: none 40/1415 (2.83%)
+  held by time between the two setAlarm() calls: >=500 ms 40/1415 (2.83%)
+held or late alarms:
+2026-09-24T14:24:14.934Z move   #0     -    8b42600bae5ecd64911ad0db031b45df3c4d28bf6e59d634f0ff9f9892024edd LHR HELD [wait] getAlarm()=14:24:14.934 at +4.1..+14.2 s (3 reads); delivered 14:24:33.718 (+18.8 s, same instance)
+2026-09-24T14:24:25.976Z move   #63    -    0b5a151567b0712e3c2339f51e80992e150fe8101efa97e13f3e8592353d8d2f LHR HELD [wait] getAlarm()=14:24:25.976 at +4.1..+14.2 s (3 reads); delivered 14:24:44.817 (+18.8 s, same instance)
+2026-09-24T14:24:26.415Z move   #95    -    873710806b47090477372db2c4c0b0c147e80203e9ff2c6ba76470425315bb3a LHR HELD [wait] getAlarm()=14:24:26.415 at +4.1..+34.3 s (7 reads); delivered 14:25:05.345 (+38.9 s, same instance)
+2026-09-24T14:24:48.032Z move   #165   -    441a5e6f18ede19afc68a5ee8f8acee4cabfe8b500b85d983ede43efdd7c2abe LHR HELD [wait] getAlarm()=14:24:48.032 at +4.1..+14.2 s (3 reads); delivered 14:25:06.960 (+18.9 s, same instance)
+2026-09-24T14:24:25.910Z move   #61    -    bf55c6b8d475b3a10f1481a697419c143abaa77de27161136412c7b5c1b827d8 LHR HELD [wait] getAlarm()=14:24:25.910 at +4.1..+49.5 s (10 reads); delivered 14:25:19.358 (+53.4 s, same instance, at the replaced +60 s time)
+2026-09-24T14:25:21.038Z move   #284   -    bdce96c236b5cffc17ca08d2cce535a2a44c345e113e7d45cb2acf775e72d4f5 LHR HELD [wait] getAlarm()=14:25:21.038 at +4.1..+14.1 s (3 reads); delivered 14:25:39.830 (+18.8 s, same instance)
+2026-09-24T14:25:25.230Z move   #317   -    5334d788a2134f19a2e667d80bc730c365880e77d24eb6f586f497e1f4ac1024 LHR HELD [wait] getAlarm()=14:25:25.230 at +4.1..+14.2 s (3 reads); delivered 14:25:43.908 (+18.7 s, same instance)
+2026-09-24T14:25:32.458Z move   #346   -    d05f6188ea3b5afee44311566dd19267d973571245d31137d6170167e94cba50 LHR HELD [wait] getAlarm()=14:25:32.458 at +4.1..+34.2 s (7 reads); delivered 14:26:11.309 (+38.9 s, same instance)
+2026-09-24T14:25:43.653Z move   #388   -    fa90e81b915a3fcae188cea2b02e192bd1aa63c0333669e508ff1fa31b10afa9 LHR HELD [wait] getAlarm()=14:25:43.653 at +4.1..+34.3 s (7 reads); delivered 14:26:22.397 (+38.7 s, same instance)
+2026-09-24T14:24:25.874Z move   #62    -    3a1afef41de888b2e15c21a4574be7c7be7553d60e9b5d8159cf709eee4774e7 LHR HELD [idle] getAlarm()=14:24:25.874 at +4.1 s; delivered 14:25:04.860 (+39.0 s, new instance)
+2026-09-24T14:24:25.917Z move   #67    -    57919bc3536119295aa58931f92fa9dd6b2ff3e65c53d3b8bb3d387b3c7627de LHR HELD [idle] getAlarm()=14:24:25.917 at +4.1 s; delivered 14:25:19.387 (+53.5 s, new instance, at the replaced +60 s time)
+2026-09-24T14:24:26.080Z move   #77    -    1287a18463f16b9ecc69bce6f24bd11ff6ff7da1c23426c8c31e9cdecf8cbfb0 LHR HELD [idle] getAlarm()=14:24:26.080 at +4.1 s; delivered 14:25:19.545 (+53.5 s, new instance, at the replaced +60 s time)
+2026-09-24T14:24:27.368Z move   #64    -    be9907476b9056de8b0f6434d8d47ff51e9b300102a839068bb6ade06e7bb9f0 AMS HELD [idle] getAlarm()=14:24:27.368 at +4.1 s; delivered 14:25:07.229 (+39.9 s, new instance)
+2026-09-24T14:26:16.460Z move   #499   -    4c1c2ecfe2093fb88801970a166f018b20dfea8cf9f022b5f33d1e33e6eb1335 LHR HELD [wait] getAlarm()=14:26:16.460 at +4.1..+34.2 s (7 reads); delivered 14:26:55.697 (+39.2 s, same instance)
+2026-09-24T14:26:49.426Z move   #621   -    d505bf825f8c7446e3e33422f7f97f39e114a5ea8672f8f60a672fffefaf99ca LHR HELD [wait] getAlarm()=14:26:49.426 at +4.1..+14.2 s (3 reads); delivered 14:27:08.393 (+19.0 s, same instance)
+2026-09-24T14:25:10.369Z move   #245   -    72642052a40ceec184c0a484efb1487cb95a8c7ae888b4c92ffadd7c14669cc7 AMS HELD [idle] getAlarm()=14:25:10.369 at +4.1 s; delivered 14:25:29.423 (+19.1 s, new instance)
+2026-09-24T14:25:21.843Z move   #305   -    297eca68d6a3af506346452ea4c89514328a7888ecd5b89608a00c27848797e0 AMS HELD [idle] getAlarm()=14:25:21.843 at +4.1 s; delivered 14:26:01.550 (+39.7 s, new instance)
+2026-09-24T14:26:28.476Z move   #544   -    04c9e65c28d44c8255ae45ac14f15d764644af6be5f8783efb2e203e3f1b2c71 AMS HELD [wait] getAlarm()=14:26:28.476 at +4.1..+49.4 s (10 reads); delivered 14:27:21.930 (+53.5 s, same instance, at the replaced +60 s time)
+2026-09-24T14:25:32.014Z move   #323   -    626a801ca9e5563555250c5ae5b6e7a8a02e987daa743b358cbc6bc25b9195b6 AMS HELD [idle] getAlarm()=14:25:32.014 at +4.1 s; delivered 14:26:25.478 (+53.5 s, new instance, at the replaced +60 s time)
+2026-09-24T14:25:43.199Z move   #376   -    52f62c8112e1f86dfe2ce8d74ac6527d7cc2820d07b3263e00c8e79518e46e2c LHR HELD [idle] getAlarm()=14:25:43.199 at +4.1 s; delivered 14:26:22.040 (+38.8 s, new instance)
+2026-09-24T14:26:49.047Z move   #609   -    b1b260d70256c5e339c3e402cd086c1c565a3450737f0205c904d6186475a7ac LHR HELD [wait] getAlarm()=14:26:49.047 at +4.1..+49.4 s (10 reads); delivered 14:27:42.517 (+53.5 s, same instance, at the replaced +60 s time)
+2026-09-24T14:27:25.056Z move   #751   -    e3a0a1ddad99abe52a4754e3d4486baa20cfeead66f7f6f2e1ce46a214efe013 LHR HELD [wait] getAlarm()=14:27:25.056 at +4.1..+14.1 s (3 reads); delivered 14:27:44.148 (+19.1 s, same instance)
+2026-09-24T14:25:48.479Z move   #400   -    89d13483b840d58e5991c8e2da425a006b5de403e89051c3a14b1f40b4941810 AMS HELD [idle] getAlarm()=14:25:48.479 at +4.1 s; delivered 14:26:27.180 (+38.7 s, new instance)
+2026-09-24T14:26:27.287Z move   #526   -    5ef5c397dbf7da1f1cf0a73e81fc601eb8f30848d3100900a36db94f49bcffc6 AMS HELD [idle] getAlarm()=14:26:27.287 at +4.2 s; delivered 14:27:21.148 (+53.9 s, new instance, at the replaced +60 s time)
+2026-09-24T14:26:30.920Z move   #553   -    6339616de7ae119e6d275b8648f99f7095f99ed852fd53eb54750b09cde44f81 LHR HELD [idle] getAlarm()=14:26:30.920 at +4.1 s; delivered 14:26:49.668 (+18.7 s, new instance)
+2026-09-24T14:27:51.876Z move   #853   -    06247ec42bbe4f36f7deeaec5f34fa6f7c9e143ee9d4f778ed840fad1fb2de46 LHR HELD [wait] getAlarm()=14:27:51.876 at +4.1..+49.4 s (10 reads); delivered 14:28:45.338 (+53.5 s, same instance, at the replaced +60 s time)
+2026-09-24T14:26:49.325Z move   #617   -    bfc0ea90e5f0bf8d016e764a03a295a1e3ab8bcadfa23d04cf9abccc04e8d309 LHR HELD [idle] getAlarm()=14:26:49.325 at +4.1 s; delivered 14:27:42.795 (+53.5 s, new instance, at the replaced +60 s time)
+2026-09-24T14:28:38.628Z move   #1033  -    378cb35fca4cde3b0005a974cd339be4b134c0145be06a460319d4f56bceb745 AMS HELD [wait] getAlarm()=14:28:38.628 at +4.1..+14.2 s (3 reads); delivered 14:28:57.752 (+19.1 s, same instance)
+2026-09-24T14:28:19.080Z move   #962   -    37434003e6f689f71b40a1a218b1fcb9814091bbdbba5ac47735976a6942a421 LHR HELD [wait] getAlarm()=14:28:19.080 at +4.1..+34.3 s (7 reads); delivered 14:28:58.132 (+39.1 s, same instance)
+2026-09-24T14:28:50.971Z move   #1086  -    9e0ceac650b5c5b0169547d206334275c7a8358b409bd3abb41fc07d5688df13 LHR HELD [wait] getAlarm()=14:28:50.971 at +4.1..+14.1 s (3 reads); delivered 14:29:09.796 (+18.8 s, same instance)
+2026-09-24T14:27:23.606Z move   #743   -    c4f4c8c944219bd0b8692380277484e75b00954536a5f1868fb5996fbe2ad798 LHR HELD [idle] getAlarm()=14:27:23.606 at +4.2 s; delivered 14:28:02.756 (+39.1 s, new instance)
+2026-09-24T14:27:44.164Z move   #813   -    48819754943f09265047da22f985fa06d956ca8748b97e8ca613e21a5c0ace2e LHR HELD [idle] getAlarm()=14:27:44.164 at +4.1 s; delivered 14:28:37.314 (+53.1 s, new instance, at the replaced +60 s time)
+2026-09-24T14:28:56.401Z move   #1109  -    7d908cc8b366032ae4a6ecd38c94a4dc4f78fb939ac900ada561842f69d5ab56 LHR HELD [wait] getAlarm()=14:28:56.401 at +4.1..+49.4 s (10 reads); delivered 14:29:49.862 (+53.5 s, same instance, at the replaced +60 s time)
+2026-09-24T14:29:25.990Z move   #1220  -    07148ba31a0b80bbdcec82d8075ea94ff4a4f6ac6232f72bf16a79cdeacaf17e LHR HELD [wait] getAlarm()=14:29:25.990 at +4.1..+34.3 s (7 reads); delivered 14:30:04.619 (+38.6 s, same instance)
+2026-09-24T14:28:06.581Z move   #914   -    6156ef565f2b3feb65685d0c7337c8c8c2f06d31e58f25d80dcf3c116427a112 LHR HELD [idle] getAlarm()=14:28:06.581 at +4.1 s; delivered 14:29:00.046 (+53.5 s, new instance, at the replaced +60 s time)
+2026-09-24T14:28:33.185Z move   #1014  -    306cbc70b462b0e09da13738bdd37ed24889dde0e74e9b376b174b1507388850 LHR HELD [idle] getAlarm()=14:28:33.185 at +4.1 s; delivered 14:29:26.656 (+53.5 s, new instance, at the replaced +60 s time)
+2026-09-24T14:28:43.806Z move   #1057  -    f1adcfafd72c8e0281ce066a0eb7905166297131a17df2dae830bc0f832f97d0 LHR HELD [idle] getAlarm()=14:28:43.806 at +4.1 s; delivered 14:29:02.910 (+19.1 s, new instance)
+2026-09-24T14:28:51.698Z move   #1088  -    432323401da5073f0bc7e03bd4dcdb65b7188c487437ecd03feef22509633da9 LHR HELD [idle] getAlarm()=14:28:51.698 at +4.1 s; delivered 14:29:30.530 (+38.8 s, new instance)
+2026-09-24T14:29:07.702Z move   #1152  -    4fa8ca41bde6b82a8f9a6633385157193756de792bd2ba11a75efcc87f3868c3 LHR HELD [idle] getAlarm()=14:29:07.702 at +4.1 s; delivered 14:30:01.175 (+53.5 s, new instance, at the replaced +60 s time)
+2026-09-24T14:30:11.036Z move   #1395  -    dbaac2a428257f42dfd90c989da6dc52cc33e3e36b17d687f3f852f258760a00 AMS HELD [idle] getAlarm()=14:30:11.036 at +4.1 s; delivered 14:30:50.139 (+39.1 s, new instance)
