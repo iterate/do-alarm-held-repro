@@ -1,20 +1,21 @@
-// A Durable Object alarm is sometimes not delivered at its time: it is held 10-60 s, while
-// storage.getAlarm() keeps returning the overdue time. Writing a different time with setAlarm()
-// gets it delivered within ~50 ms. One object per trial; run.mjs drives the trials.
+// A Durable Object alarm moved earlier with setAlarm() is sometimes not run at its time: it is held
+// about 19, 39 or 58 s, while storage.getAlarm() keeps returning the overdue time. Calling setAlarm()
+// again gets it run within ~100 ms; a storage write alone does not. One object per trial; run.mjs
+// drives the trials.
 import { DurableObject } from "cloudflare:workers";
 
 export class Probe extends DurableObject {
   // A new value each time the runtime constructs the object: tells incarnations apart.
   instance = crypto.randomUUID().slice(0, 8);
 
-  // shape=move, request 1: arm the alarm `laterMs` out (the object's first setAlarm).
+  // shape=move, call 1: arm the alarm `laterMs` out (the object's first setAlarm).
   async armLater(laterMs) {
     const at = Date.now() + laterMs;
     await this.ctx.storage.setAlarm(at);
     return at;
   }
 
-  // Request 2 for shape=move (moves the alarm EARLIER), the only request for shape=single.
+  // Call 2 for shape=move (moves the alarm EARLIER), the only call for shape=single.
   async arm(soonMs, laterAt) {
     const target = Date.now() + soonMs;
     this.ctx.storage.put({ target, laterAt, armInstance: this.instance });
@@ -49,7 +50,8 @@ export class Probe extends DurableObject {
     const before = await this.ctx.storage.getAlarm();
     const at = Date.now();
     if (to === "put") await this.ctx.storage.put("poke", at);
-    else await this.ctx.storage.setAlarm(to === "same" ? before : at + 1);
+    else if (to === "next") await this.ctx.storage.setAlarm(at + 1);
+    else if (before !== null) await this.ctx.storage.setAlarm(before); // same; null: nothing is armed
     return { at, to, getAlarmBefore: before, instance: this.instance };
   }
 
@@ -71,8 +73,10 @@ export default {
     const stub = env.PROBE.get(id, hint ? { locationHint: hint } : undefined);
     switch (url.pathname) {
       case "/arm": {
-        // shape=move: +60 s, then +1.5 s in a second request. shape=single: +1.5 s only.
+        // shape=move: +60 s, then +1.5 s in a second RPC call, `pause` ms later (default 0).
+        // shape=single: +1.5 s only.
         const laterAt = q("shape", "move") === "move" ? await stub.armLater(Number(q("later", 60000))) : null;
+        if (laterAt && Number(q("pause", 0))) await new Promise((resolve) => setTimeout(resolve, Number(q("pause"))));
         const armed = await stub.arm(Number(q("soon", 1500)), laterAt);
         return Response.json({ doId: id.toString(), laterAt, ...armed });
       }
