@@ -1,0 +1,12 @@
+{
+  "name": "do-alarm-held-repro",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "run-trials": "node run.mjs"
+  },
+  "devDependencies": {
+    "wrangler": "^4.138.0"
+  }
+}
