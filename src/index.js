@@ -31,7 +31,7 @@ export class Probe extends DurableObject {
 
   // getAlarm is the runtime's own view of the armed alarm.
   async status() {
-    const s = await this.ctx.storage.get(["target", "laterAt", "armInstance", "rearms", "deliveries"]);
+    const s = await this.ctx.storage.get(["target", "laterAt", "armInstance", "deliveries"]);
     return {
       now: Date.now(),
       instance: this.instance,
@@ -39,21 +39,18 @@ export class Probe extends DurableObject {
       target: s.get("target") ?? null,
       laterAt: s.get("laterAt") ?? null,
       armInstance: s.get("armInstance") ?? null,
-      rearms: s.get("rearms") ?? [],
       deliveries: s.get("deliveries") ?? [],
     };
   }
 
-  // to=next writes now + 1 ms (a different time); to=same writes the stored time again.
+  // Poke a held alarm. to=next: setAlarm(now + 1 ms), a different time. to=same: setAlarm(the
+  // stored time) again. to=put: no setAlarm, one storage.put() of an unrelated key.
   async rearm(to) {
     const before = await this.ctx.storage.getAlarm();
     const at = Date.now();
-    const alarmAt = to === "same" ? before : at + 1;
-    const rearms = (await this.ctx.storage.get("rearms")) ?? [];
-    rearms.push({ at, to, alarmAt, getAlarmBefore: before, instance: this.instance });
-    this.ctx.storage.put("rearms", rearms);
-    if (alarmAt !== null) await this.ctx.storage.setAlarm(alarmAt);
-    return rearms.at(-1);
+    if (to === "put") await this.ctx.storage.put("poke", at);
+    else await this.ctx.storage.setAlarm(to === "same" ? before : at + 1);
+    return { at, to, getAlarmBefore: before, instance: this.instance };
   }
 
   // The colo this object runs in.

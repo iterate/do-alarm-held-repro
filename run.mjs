@@ -7,6 +7,7 @@
 //   rearm  setAlarm(now + 1 ms), a different time, and time the delivery
 //   idle   leave the object alone until +120 s, then read when it was delivered
 //   same   setAlarm(the stored time) again, then poll like wait
+//   put    storage.put() of an unrelated key, no setAlarm, then poll like wait
 //
 // Options (defaults):
 //   --trials 200          stop after this many trials...
@@ -16,7 +17,7 @@
 //   --soon 1500 --later 60000
 //   --hints ""            location hints, round-robin, e.g. weur,enam,wnam,apac
 //   --check 4000          ms after the alarm's time to look; not delivered by then = held
-//   --on-held wait,rearm,idle,same
+//   --on-held wait,rearm,idle,same,put
 //   --give-up 300000      stop watching a held alarm this many ms after its time
 //   --out results-<run>.jsonl
 //
@@ -41,7 +42,7 @@ const soon = Number(opt("soon", 1500));
 const later = Number(opt("later", 60000));
 const hints = opt("hints", "").split(",").filter(Boolean);
 const check = Number(opt("check", 4000));
-const onHeld = opt("on-held", "wait,rearm,idle,same").split(",");
+const onHeld = opt("on-held", "wait,rearm,idle,same,put").split(",");
 const giveUp = Number(opt("give-up", 300000));
 const run = Date.now().toString(36);
 const out = opt("out", `results-${run}.jsonl`);
@@ -62,6 +63,7 @@ const started = Date.now();
 const results = [];
 let heldSeen = 0;
 let nextIndex = 0;
+let stopping = false;
 
 async function trial(i) {
   const shape = shapeOpt === "both" ? (i % 2 ? "single" : "move") : shapeOpt;
@@ -86,8 +88,8 @@ async function trial(i) {
       s = await get("/status", params);
       t.looks.push({ now: s.now, getAlarm: s.getAlarm, delivered: s.deliveries.length > 0 });
     };
-    if (t.strategy === "rearm" || t.strategy === "same") {
-      t.rearm = await get("/rearm", { ...params, to: t.strategy === "same" ? "same" : "next" });
+    if (["rearm", "same", "put"].includes(t.strategy)) {
+      t.rearm = await get("/rearm", { ...params, to: t.strategy === "rearm" ? "next" : t.strategy });
       for (const wait of [100, 200, 500, 1000, 2000]) {
         await sleep(wait);
         await look();
@@ -118,20 +120,21 @@ async function trial(i) {
 
 function line(t) {
   const head = `${utc(t.target)} ${t.shape.padEnd(6)} #${String(t.i).padEnd(5)} ${(t.hint ?? "-").padEnd(4)}`;
-  if (t.error) return `${head} ERROR ${t.error}`;
+  if (t.error) return `${head} ERROR ${t.error.split("\n")[0]}`;
   const first = t.deliveries[0];
   const slowArm = t.armMs > 5000 ? ` (/arm took ${secs(t.armMs)})` : "";
   if (!t.held && t.latenessMs <= 1000) return `${head} ${t.doId.slice(0, 16)}  delivered +${t.latenessMs} ms${slowArm}`;
-  if (!t.held) return `${head} ${t.doId} ${t.colo} LATE delivered ${hms(first.at)} (+${secs(t.latenessMs)})${slowArm}`;
+  if (!t.held) return `${head} ${t.doId} ${t.colo ?? "-"} LATE delivered ${hms(first.at)} (+${secs(t.latenessMs)})${slowArm}`;
   const heldLooks = t.looks.filter((l) => !l.delivered && (!t.rearm || l.now < t.rearm.at));
   const readings = [...new Set(heldLooks.map((l) => l.getAlarm))].map(hms).join(", ");
   const at = heldLooks.map((l) => `+${((l.now - t.target) / 1000).toFixed(1)}`);
   const span = at.length > 1 ? `${at[0]}..${at.at(-1)} s (${at.length} reads)` : `${at[0]} s`;
-  let text = `${head} ${t.doId} ${t.colo ?? ""} HELD [${t.strategy}] getAlarm()=${readings} at ${span}`;
+  let text = `${head} ${t.doId} ${t.colo ?? "-"} HELD [${t.strategy}] getAlarm()=${readings} at ${span}`;
   if (!first) return `${text}; NOT DELIVERED by +${secs(giveUp)}`;
   const incarnation = first.instance === t.armInstance ? "same instance" : "new instance";
   if (t.rearm) {
-    text += `; setAlarm(${t.rearm.to === "same" ? "the same time" : "now + 1 ms"}) at ${hms(t.rearm.at)}`;
+    const poke = { next: "setAlarm(now + 1 ms)", same: "setAlarm(the same time)", put: "storage.put() alone" };
+    text += `; ${poke[t.rearm.to]} at ${hms(t.rearm.at)}`;
     if (t.rearmDeliveryMs == null) return `${text} -> NOT DELIVERED`;
     return `${text} -> delivered ${t.rearmDeliveryMs} ms later (${incarnation})`;
   }
@@ -140,7 +143,7 @@ function line(t) {
 }
 
 async function worker() {
-  while (nextIndex < trials && (!minutes || Date.now() - started < minutes * 60000)) {
+  while (!stopping && nextIndex < trials && (!minutes || Date.now() - started < minutes * 60000)) {
     const i = nextIndex++;
     let t;
     try {
@@ -192,7 +195,7 @@ function summary() {
       if (!these.length) continue;
       const fmt = (t) =>
         t.rearm
-          ? `${t.rearmDeliveryMs == null ? "never" : `${t.rearmDeliveryMs} ms`} after re-arm`
+          ? `${t.rearmDeliveryMs == null ? "never" : `${t.rearmDeliveryMs} ms`} after the call`
           : t.latenessMs == null ? "never" : secs(t.latenessMs);
       report.push(`  held [${strategy}]: ${these.map(fmt).join(", ")}`);
     }
@@ -210,8 +213,12 @@ if (summarize) {
   process.exit(0);
 }
 process.on("SIGINT", () => {
-  summary();
-  process.exit(130);
+  if (stopping) {
+    summary();
+    process.exit(130);
+  }
+  stopping = true;
+  console.error("no new trials; waiting for the ones in flight (Ctrl-C again to stop now)");
 });
 await Promise.all(Array.from({ length: concurrency }, worker));
 summary();
